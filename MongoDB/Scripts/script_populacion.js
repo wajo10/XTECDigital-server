@@ -1,10 +1,12 @@
-async function main(){
+function main(){
     const estudiantes = require("./script_estudiantes");
     const profesores = require("./script_profesores");
-    await estudiantes.main().catch(console.error);;
-    await profesores.main().catch(console.error);;
+    estudiantes.main()    
+    .then( function() {
+        profesores.main();
+    }) 
     
 }
 
 
-main().catch(console.error);
+main();

@@ -1,6 +1,6 @@
-module.exports.main = async function mainProfesores(){
+module.exports.main = function mainProfesores(){
 
-    const uri = 'mongodb+srv://admin:admin@usuarios.ozlkz.mongodb.net/Usuarios?retryWrites=true&w=majority';
+    const url = 'mongodb+srv://admin:admin@usuarios.ozlkz.mongodb.net/Usuarios?retryWrites=true&w=majority';
  
     var profesores = [
         {
@@ -36,48 +36,50 @@ module.exports.main = async function mainProfesores(){
 
     var MongoClient = require('mongodb').MongoClient;
     
-    await dropCollection(MongoClient, uri);
+    return dropCollection(MongoClient, url)
+    .then( function() {
+        return createCollection(MongoClient, url);
+    }) 
+    .then( function() {
+        return fillSteachers(MongoClient, url, profesores);
+    });
 
-    await createCollection(MongoClient, uri);
-
-    await fillStudents(MongoClient, uri, profesores);
-    
 }
 
 // mainProfesores().catch(console.error);
 
-async function dropCollection(MongoClient, url){
-    await MongoClient.connect(url, function(err, db) {
-        if (err) throw err;
-        var dbo = db.db("xTecDigital");
+function dropCollection(MongoClient, url){
+    return MongoClient.connect(url, {useNewUrlParser: true, useUnifiedTopology: true})
+    .then(db =>{
+        var dbo = db.db("Usuarios");
         dbo.dropCollection("profesores", function(err, delOK) {
           if (err) throw err;
           if (delOK) console.log("Collection 'Profesores' deleted");
           db.close();
         });
-      });
+    }).catch(function (err) {})
 }
 
-async function createCollection(MongoClient, url){
-    await MongoClient.connect(url, function(err, db) {
-        if (err) throw err;
-        var dbo = db.db("xTecDigital");
+function createCollection(MongoClient, url){
+    return MongoClient.connect(url, {useNewUrlParser: true, useUnifiedTopology: true})
+    .then(db =>{
+        var dbo = db.db("Usuarios");
         dbo.createCollection("profesores", function(err, res) {
           if (err) throw err;
           console.log("Collection 'Profesores' created!");
           db.close();
-        });
-      });   
+        })
+    }) .catch(function (err) {})  
 }
 
-async function fillStudents(MongoClient, url, profesores){
-    await MongoClient.connect(url, function(err, db) {
-        if (err) throw err;
-        var dbo = db.db("xTecDigital");
+function fillSteachers(MongoClient, url, profesores){
+    return MongoClient.connect(url, {useNewUrlParser: true, useUnifiedTopology: true})
+    .then(db =>{
+        var dbo = db.db("Usuarios");
         dbo.collection("profesores").insertMany(profesores, function(err, res) {
             if (err) throw err;
             console.log("Number of documents inserted: " + res.insertedCount + " to 'Profesores'");
             db.close();
           });
-      });  
+    }).catch(function (err) {})
 }
