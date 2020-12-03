@@ -1,0 +1,4 @@
+--Validar que al crear una carpeta no exista una carpeta con el mismo nombre en el mismo grupo.
+--Validar que al crear un documento no exista una carpeta con el mismo nombre en el mismo grupo.
+--Validar que al crear una evaluacion el rubro no exista ya en ese grupo y que los porcentajes de todas sumen 100%.
+--
