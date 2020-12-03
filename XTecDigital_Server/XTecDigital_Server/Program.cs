@@ -15,19 +15,7 @@ namespace XTecDigital_Server
     {
         public static void Main(string[] args)
         {
-            MongoClient dbClient = new MongoClient("mongodb+srv://admin:admin@usuarios.ozlkz.mongodb.net/<dbname>?retryWrites=true&w=majority");
-
-            var dbList = dbClient.ListDatabases().ToList();
-            var database = dbClient.GetDatabase("xTecDigital");
-            var collection = database.GetCollection<BsonDocument>("estudiantes");
-
-            Console.WriteLine("holaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
-            var firstDocument = collection.Find(new BsonDocument()).FirstOrDefault();
-            Console.WriteLine(firstDocument.ToString());
-            Console.WriteLine("adiossssssssssssssssssssssssssssssss");
             CreateHostBuilder(args).Build().Run();
-
-
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
