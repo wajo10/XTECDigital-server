@@ -22,7 +22,7 @@ namespace XTecDigital_Server
         }
         public static string getKey()
         {
-            return "Server=127.0.0.1;User Id=postgres; " + "Password=sarcu1209;Database=basedatosstraviatec;";
+            return "Data Source=DESKTOP-A1ENCTT;Initial Catalog=baseXTecDigital;Integrated Security=True";
         }
 
         public IConfiguration Configuration { get; }

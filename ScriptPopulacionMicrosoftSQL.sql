@@ -16,5 +16,4 @@ Execute agregarEstudiante @carnet = '674536453';
 Execute agregarEstudiante @carnet = '645679896';
 Execute agregarEstudiante @carnet = '14453544';
 
-
-select * from Estudiantes
+sele

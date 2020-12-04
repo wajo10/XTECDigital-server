@@ -10,9 +10,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using MongoDB.Driver;
 using MongoDB.Bson;
-using Npgsql;
 using System.Data.SqlClient;
-using Xceed.Wpf.Toolkit;
 
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -96,21 +94,23 @@ namespace XTecDigital_Server.Controllers
             };
             collection.InsertOne(document);
         }
-        [Route("agregarProfesorSQL")]
+        [Route("agregarEstudianteSQL")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
         public void agregarEstudianteSQL(Usuario usuario)
         {
             SqlConnection conn = new SqlConnection(serverKey);
             conn.Open();
-            string insertQuery = "agregarProfesor";
+            string insertQuery = "agregarEstudiante";
             SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@carnet", usuario.carnet);
             cmd.ExecuteNonQuery();
             Debug.WriteLine("Usuario creado exitosamente");
             conn.Close();
         }
-        [Route("agregarEstudianteSQL")]
+
+        [Route("agregarProfesorSQL")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
         public void agregarProfesorSQL(Usuario usuario)
