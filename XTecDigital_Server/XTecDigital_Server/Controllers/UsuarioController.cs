@@ -106,7 +106,7 @@ namespace XTecDigital_Server.Controllers
             cmd.CommandType = System.Data.CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@carnet", usuario.carnet);
             cmd.ExecuteNonQuery();
-            Debug.WriteLine("Usuario creado exitosamente");
+            Debug.WriteLine("Estudiante creado exitosamente");
             conn.Close();
         }
 
@@ -115,7 +115,15 @@ namespace XTecDigital_Server.Controllers
         [HttpPost]
         public void agregarProfesorSQL(Usuario usuario)
         {
-            
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            string insertQuery = "agregarProfesor";
+            SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@cedula", usuario.cedula);
+            cmd.ExecuteNonQuery();
+            Debug.WriteLine("Profesor creado exitosamente");
+            conn.Close();
         }
     }
 }
