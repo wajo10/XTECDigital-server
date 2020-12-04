@@ -138,3 +138,19 @@ foreign key (idGrupo) references Grupo (idGrupo);
 Alter table Evaluaciones
 Add constraint FK_idGrupoEvaluaciones
 foreign key (idGrupo) references Grupo (idGrupo);
+
+--TABLA PARA PROBAR USUARIOS
+create table pruebaUsuarios(
+	nombre varchar(30),
+	usuario varchar(30),
+	contrasena varchar(30),
+	rol varchar(30),
+	primary key (usuario)
+);
+
+insert into pruebaUsuarios values ('Mario','mario123', 'mario123', 'administrador');
+insert into pruebaUsuarios values ('Wajib','wajo123', 'wajo10', 'profesor');
+insert into pruebaUsuarios values ('Mariana','mari123', 'mari12345', 'estudiante');
+insert into pruebaUsuarios values ('Fabian','fabian123', 'fabian123', 'estudiante');
+
+select * from pruebaUsuarios;
