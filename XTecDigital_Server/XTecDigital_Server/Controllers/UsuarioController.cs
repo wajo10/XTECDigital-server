@@ -99,18 +99,21 @@ namespace XTecDigital_Server.Controllers
         [Route("agregarProfesorSQL")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
-        public Usuario agregarProfesorSQL(Usuario usuario)
+        public void agregarEstudianteSQL(Usuario usuario)
         {
-            SqlConnection cnn;
-            cnn = new SqlConnection(serverKey);
-            cnn.Open();
-            MessageBox.Show("Connection Open  !");
-            cnn.Close();
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            string insertQuery = "agregarProfesor";
+            SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            cmd.Parameters.AddWithValue("@carnet", usuario.carnet);
+            cmd.ExecuteNonQuery();
+            Debug.WriteLine("Usuario creado exitosamente");
+            conn.Close();
         }
         [Route("agregarEstudianteSQL")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
-        public void agregarEstudianteSQL(Usuario usuario)
+        public void agregarProfesorSQL(Usuario usuario)
         {
             
         }
