@@ -34,7 +34,6 @@ namespace XTecDigital_Server.Controllers
             var filter2 = Builders<BsonDocument>.Filter.Eq("password", usuario.password);
             var projection = Builders<BsonDocument>.Projection.Exclude("_id");
             var document = collection.Find(filter1 & filter2).Project(projection).FirstOrDefault();
-            string FalseValue = "false";
             var jsons = new[]
             {
                 new BsonDocument {{ "response", "false" }},
@@ -48,6 +47,28 @@ namespace XTecDigital_Server.Controllers
             {
                 return jsons[1].ToString();
             }
+        }
+
+
+        [Route("agregarEstudiante")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public void agregarEstudiante(Usuario usuario)
+        {
+            var connectionString = "mongodb+srv://admin:admin@usuarios.ozlkz.mongodb.net/Usuarios?retryWrites=true&w=majority";
+            var mongoClient = new MongoClient(connectionString);
+            var dataBase = mongoClient.GetDatabase("Usuarios");
+            var collection = dataBase.GetCollection<BsonDocument>("estudiantes");
+            var document = new BsonDocument
+            {
+                { "carnet", usuario.carnet },
+                { "nombre", usuario.nombre },
+                { "email", usuario.email },
+                { "telefono", usuario.telefono },
+                { "password", usuario.password },
+                { "rol", usuario.rol },
+            };
+            collection.InsertOne(document);
         }
     }
 }
