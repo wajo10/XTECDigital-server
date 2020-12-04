@@ -10,7 +10,7 @@ create table Administrador (
 create table Semestre (
 	idSemestre int identity(1,1),
 	ano int not null,
-	periodo int not null,
+	periodo varchar(1) not null,
 	cedulaAdmin int not null,
 	primary key (idSemestre)
 );
@@ -23,6 +23,7 @@ create table Curso (
 	idSemestre int not null,
 	primary key (codigo)
 );
+
 
 create table Estudiantes (
 	carnet int,

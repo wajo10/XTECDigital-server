@@ -1,3 +1,4 @@
+--Validar que al crear un semestre no exista ya uno con el mismo ano y periodo
 --Validar que al crear una carpeta no exista una carpeta con el mismo nombre en el mismo grupo.
 --Validar que al crear un documento no exista una carpeta con el mismo nombre en el mismo grupo.
 --Validar que al crear una evaluacion el rubro no exista ya en ese grupo y que los porcentajes de todas sumen 100
@@ -25,10 +26,40 @@ INSERT INTO Profesor values (@cedula);
 End;
 Go
 
+CREATE OR ALTER PROCEDURE agregarEstudiante @carnet int
+AS
+Begin
+INSERT INTO Estudiantes values (@carnet);
+End;
+Go
+
+CREATE OR ALTER PROCEDURE agregarAdmin @cedula int
+AS
+Begin
+INSERT INTO Administrador values (@cedula);
+End;
+Go
+
+--TRIGGERS........................................................
+/*
+Create or Alter Trigger tr_verificarSemestre on Administrador
+for Insert
+As
+*/
+--TRIGGERS........................................................
+
+
 --*******************************ADMINISTRADOR******************************************
 
 --gestionar (visualizar, crear o deshabilitar) la lista de cursos genérica que utiliza el sistema.
 --Crear semestre (1 para el primer semestre, 2 para el segundo semestre y V para el periodo de verano).  
+CREATE OR ALTER PROCEDURE crearSemestre @ano int, @periodo int, @cedulaAdmin int
+AS
+Begin
+INSERT INTO Semestre (ano, periodo, cedulaAdmin) values (@ano, @periodo, @cedulaAdmin);
+End;
+Go
+
 --Establecerse los cursos que serán impartidos en el semestre.
 --Establecer los grupos del curso.
 --Creacion de Documentos (Presentaciones, Quizes, Examenes, Proyectos) y Evaluaciones (Examenes 30%, Proyectos 40%, Quizes 30%) al crear el grupo
