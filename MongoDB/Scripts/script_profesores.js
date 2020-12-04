@@ -7,31 +7,30 @@ module.exports.main = function mainProfesores(){
             "carnet": 411110758,
             "nombre":"Fabian Ramirez Arrieta",
             "email":"fabian03@estudiantec.cr",
-            "telefono":"6062-5648",
-            "password":"1234"
+            "password":"1234",
+            "rol": "profesores"
         },
         {
             "carnet": 400225348,
             "nombre":"Mariana Vargas Ramirez",
             "email":"marianaVargas@estudiantec.cr",
-            "telefono":"8461-7340",
-            "password":"1234"
+            "password":"1234",
+            "rol": "profesores"
         },
         {
             "carnet": 245248713,
             "nombre":"Mario Alexis Araya Chacón",
             "email":"mario@estudiantec.cr",
-            "telefono":"8979-7226",
-            "password":"1234"
+            "password":"1234",
+            "rol": "profesores"
         },
         {
             "carnet": 278456519,
             "nombre":"Wajib Zaglul Chinchilla",
             "email":"wajo@estudiantec.cr",
-            "telefono":"7076-2737",
-            "password":"1234"
-        }
-
+            "password":"1234",
+            "rol": "profesores"
+        },
     ]
 
     var MongoClient = require('mongodb').MongoClient;

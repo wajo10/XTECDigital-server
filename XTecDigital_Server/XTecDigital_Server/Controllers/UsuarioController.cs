@@ -10,6 +10,9 @@ using System.Diagnostics;
 using System.Text.Json;
 using MongoDB.Driver;
 using MongoDB.Bson;
+using Npgsql;
+using System.Data.SqlClient;
+using Xceed.Wpf.Toolkit;
 
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -21,6 +24,8 @@ namespace XTecDigital_Server.Controllers
     [Route("[controller]")]
     public class UsuarioController : ControllerBase
     {
+        private string serverKey = Startup.getKey();
+
         [Route("validarUser")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
@@ -34,7 +39,6 @@ namespace XTecDigital_Server.Controllers
             var filter2 = Builders<BsonDocument>.Filter.Eq("password", usuario.password);
             var projection = Builders<BsonDocument>.Projection.Exclude("_id");
             var document = collection.Find(filter1 & filter2).Project(projection).FirstOrDefault();
-            string FalseValue = "false";
             var jsons = new[]
             {
                 new BsonDocument {{ "response", "false" }},
@@ -48,6 +52,67 @@ namespace XTecDigital_Server.Controllers
             {
                 return jsons[1].ToString();
             }
+        }
+
+
+        [Route("agregarEstudiante")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public void agregarEstudiante(Usuario usuario)
+        {
+            var connectionString = "mongodb+srv://admin:admin@usuarios.ozlkz.mongodb.net/Usuarios?retryWrites=true&w=majority";
+            var mongoClient = new MongoClient(connectionString);
+            var dataBase = mongoClient.GetDatabase("Usuarios");
+            var collection = dataBase.GetCollection<BsonDocument>("estudiantes");
+            var document = new BsonDocument
+            {
+                { "carnet", usuario.carnet },
+                { "nombre", usuario.nombre },
+                { "email", usuario.email },
+                { "telefono", usuario.telefono },
+                { "password", usuario.password },
+                { "rol", usuario.rol },
+            };
+            collection.InsertOne(document);
+        }
+
+        [Route("agregarProfesor")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public void agregarProfesor(Usuario usuario)
+        {
+            var connectionString = "mongodb+srv://admin:admin@usuarios.ozlkz.mongodb.net/Usuarios?retryWrites=true&w=majority";
+            var mongoClient = new MongoClient(connectionString);
+            var dataBase = mongoClient.GetDatabase("Usuarios");
+            var collection = dataBase.GetCollection<BsonDocument>("profesores");
+            var document = new BsonDocument
+            {
+                { "carnet", usuario.carnet },
+                { "nombre", usuario.nombre },
+                { "email", usuario.email },
+                { "telefono", usuario.telefono },
+                { "password", usuario.password },
+                { "rol", usuario.rol },
+            };
+            collection.InsertOne(document);
+        }
+        [Route("agregarProfesorSQL")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public Usuario agregarProfesorSQL(Usuario usuario)
+        {
+            SqlConnection cnn;
+            cnn = new SqlConnection(serverKey);
+            cnn.Open();
+            MessageBox.Show("Connection Open  !");
+            cnn.Close();
+        }
+        [Route("agregarEstudianteSQL")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public void agregarEstudianteSQL(Usuario usuario)
+        {
+            
         }
     }
 }
