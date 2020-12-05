@@ -32,6 +32,15 @@ Execute crearGrupo @codigoCurso = 'MA0101', @numeroGrupo = 2;
 Execute crearGrupo @codigoCurso = 'MA0101', @numeroGrupo = 3;
 Execute crearGrupo @codigoCurso = 'EL2114', @numeroGrupo = 1;
 
+--Asignacion de profesores a los grupos
+Execute asignarProfesorGrupo @codigoCurso = 'CE3101', @numeroGrupo = 1, @cedulaProfesor = '1234'; --Hay que cambiar la cedula por una que exista
+
+--Asignacion de estudiantes a los grupos
+Execute agregarEstudiantesGrupo @carnet = '1010212', @codigoCurso = 'CE3101', @numeroGrupo = 1;
+Execute agregarEstudiantesGrupo @carnet = '14453544', @codigoCurso = 'CE3101', @numeroGrupo = 1;
+Execute agregarEstudiantesGrupo @carnet = '34312', @codigoCurso = 'CE3101', @numeroGrupo = 1;
+Execute agregarEstudiantesGrupo @carnet = '453343', @codigoCurso = 'CE3101', @numeroGrupo = 1;
+
 /*
 delete from Grupo
 select * from Carpetas

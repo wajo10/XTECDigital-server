@@ -37,11 +37,6 @@ create table Profesor(
 	primary key (cedula)
 );
 
-create table ProfesoresCurso(
-	codigoCurso varchar(10),
-	cedulaProfesor int,
-	primary key(codigoCurso, cedulaProfesor)
-);
 
 create table Grupo(
 	idGrupo int identity(1,1),

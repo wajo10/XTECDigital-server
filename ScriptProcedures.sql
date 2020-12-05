@@ -116,17 +116,53 @@ BEGIN
 END;
 GO
 
+--Crear Evaluacion
+CREATE OR ALTER PROCEDURE crearEvaluacion @grupal int, @fechaInicio datetime, @fechaFin datetime, @archivo varbinary(MAX), 
+@rubro varchar(50), @porcentaje decimal, @codigoCurso varchar(10), @numeroGrupo int
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	insert into Evaluaciones (grupal, fechaInicio, fechaFin, archivo, rubro, porcentaje,idGrupo)
+	values (@grupal, @fechaInicio, @fechaFin, @archivo, @rubro, @porcentaje, @idGrupo);
+END;
+GO
 
-
-
+--Eliminar Evaluacion
+CREATE OR ALTER PROCEDURE eliminarEvaluacion @rubro varchar(50), @codigoCurso varchar(10), @numeroGrupo int
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	Delete from EvaluacionesEstudiantes where idEvaluacion = (select idEvaluacion from Evaluaciones where rubro = @rubro and idGrupo = @idGrupo);
+	Delete from Evaluaciones where rubro = @rubro and idGrupo = @idGrupo;
+END;
+GO
 --Establecer los profesores del grupo.
+CREATE OR ALTER PROCEDURE asignarProfesorGrupo @codigoCurso varchar(10), @numeroGrupo int, @cedulaProfesor int
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	insert into ProfesoresGrupo (idGrupo, cedulaProfesor) values (@idGrupo, @cedulaProfesor)
+END;
+GO
+
+--Eliminar profesor del grupo
+CREATE OR ALTER PROCEDURE eliminarProfesorGrupo @codigoCurso varchar(10), @numeroGrupo int, @cedulaProfesor int
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	delete from ProfesoresGrupo where idGrupo = @idGrupo and cedulaProfesor = @cedulaProfesor;
+END;
+GO
+
 --Establecer estudiantes del grupo
+CREATE OR ALTER PROCEDURE agregarEstudiantesGrupo @carnet varchar(15), @codigoCurso varchar(10), @numeroGrupo int
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	insert into EstudiantesGrupo values (@carnet, @idGrupo);
+END;
+GO
 --Crear semestre cargando tablas de excel a una tabla temporal y luego ejecutar un procedimiento almacenado
-
-
---........................................................VIEWS........................................................
-
---........................................................VIEWS........................................................
 
 --........................................................TRIGGERS........................................................
 
@@ -178,6 +214,7 @@ BEGIN
 END;
 Go
 
+--Valida que el documento que se quiere crear no exista ya en la carpeta
 Create or Alter Trigger tr_verificarDocumento on Documentos
 for Insert
 As
@@ -189,6 +226,16 @@ BEGIN
 END;
 Go
 
+Create or Alter Trigger tr_verificarEvaluacion on Evaluaciones
+for Insert
+As
+IF Exists (select * from Evaluaciones as e join inserted as i on e.rubro= i.rubro and e.idGrupo = i.idGrupo having COUNT(*)>1)
+BEGIN
+	RAISERROR ('Ya existe una evaluacion con ese nombre en para este grupo',16,1);
+	ROLLBACK TRANSACTION;
+	Return
+END;
+Go
 
 --........................................................TRIGGERS........................................................
 
