@@ -1,6 +1,7 @@
 --Creacion de la base de datos
 --create database baseXTecDigital
 
+
 --Creacion de las tablas de la base de datos
 create table Administrador (
 	cedula int,
@@ -17,8 +18,8 @@ create table Semestre (
 
 create table Curso (
 	codigo varchar(10),
-	nombre varchar(30) not null unique,
-	carrera varchar(30) not null,
+	nombre varchar(50) not null unique,
+	carrera varchar(50) not null,
 	creditos int not null,
 	idSemestre int not null,
 	primary key (codigo)
@@ -26,9 +27,10 @@ create table Curso (
 
 
 create table Estudiantes (
-	carnet int,
+	carnet varchar(15),
 	primary key (carnet)
 );
+
 
 create table Profesor(
 	cedula int,
@@ -55,7 +57,7 @@ create table ProfesoresGrupo (
 );
 
 create table EstudiantesGrupo(
-	carnetEstudiante int not null,
+	carnetEstudiante varchar(15) not null,
 	idGrupo int not null,
 	primary key (carnetEstudiante, idGrupo)
 );
@@ -90,7 +92,7 @@ create table Noticias(
 
 create table Evaluaciones(
 	idEvaluacion int identity (1,1),
-	rubro varchar (30) not null,
+	rubro varchar (50) not null,
 	porcentaje decimal not null,
 	grupal bit default 0,
 	fechaInicio datetime not null,
@@ -101,11 +103,11 @@ create table Evaluaciones(
 );
 
 create table EvaluacionesEstudiantes (
-	carnet int not null,
+	carnet varchar(15) not null,
 	idEvaluacion int not null,
 	grupo int default 0,
 	nota decimal,
-	comentario varchar (250),
+	comentario varchar (300),
 	archivoRetroalimentacion varbinary(max),
 	archivoSolucion varbinary(max),
 	primary key (carnet, idEvaluacion)
@@ -124,6 +126,18 @@ Alter table Grupo
 Add constraint FK_codigoCurso
 foreign key (codigoCurso) references Curso (codigo);
 
+Alter table ProfesoresGrupo
+Add constraint FK_idGrupoProfesores
+foreign key (idGrupo) references Grupo (idGrupo);
+
+Alter table ProfesoresGrupo
+Add constraint FK_cedulaProfesores
+foreign key (cedulaProfesor) references Profesor (cedula);
+
+Alter table EstudiantesGrupo
+Add constraint FK_carnetEstudianteGrupo
+foreign key (carnetEstudiante) references Estudiantes (carnet);
+
 Alter table Carpetas
 Add constraint FK_idGrupo
 foreign key (idGrupo) references Grupo (idGrupo);
@@ -140,18 +154,13 @@ Alter table Evaluaciones
 Add constraint FK_idGrupoEvaluaciones
 foreign key (idGrupo) references Grupo (idGrupo);
 
---TABLA PARA PROBAR USUARIOS
-create table pruebaUsuarios(
-	nombre varchar(30),
-	usuario varchar(30),
-	contrasena varchar(30),
-	rol varchar(30),
-	primary key (usuario)
-);
+Alter table EvaluacionesEstudiantes
+Add constraint FK_idEvaluacion
+foreign key (idEvaluacion) references Evaluaciones (idEvaluacion);
 
-insert into pruebaUsuarios values ('Mario','mario123', 'mario123', 'administrador');
-insert into pruebaUsuarios values ('Wajib','wajo123', 'wajo10', 'profesor');
-insert into pruebaUsuarios values ('Mariana','mari123', 'mari12345', 'estudiante');
-insert into pruebaUsuarios values ('Fabian','fabian123', 'fabian123', 'estudiante');
+Alter table EvaluacionesEstudiantes
+Add constraint FK_idCarnetEvaluacion
+foreign key (carnet) references Estudiantes (carnet);
 
-select * from pruebaUsuarios;
+
+
