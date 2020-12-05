@@ -1,16 +1,8 @@
---Validar que al crear un semestre no exista ya uno con el mismo ano y periodo
+
 --Validar que al crear una carpeta no exista una carpeta con el mismo nombre en el mismo grupo.
 --Validar que al crear un documento no exista una carpeta con el mismo nombre en el mismo grupo.
 --Validar que al crear una evaluacion el rubro no exista ya en ese grupo y que los porcentajes de todas sumen 100
 --Validacion de profesores, administradores y estudiantes en el Log In
-
-CREATE OR ALTER PROCEDURE verUsuarios @rol varchar(30)
-AS
-Begin
-SELECT * FROM pruebaUsuarios where rol = @rol
-End
-Go
-
 
 CREATE OR ALTER PROCEDURE crearUsuario @nombre varchar(30), @nombreusuario varchar(30), @contra varchar(30), @rol varchar(30)
 AS
@@ -40,19 +32,10 @@ INSERT INTO Administrador values (@cedula);
 End;
 Go
 
---TRIGGERS........................................................
-/*
-Create or Alter Trigger tr_verificarSemestre on Administrador
-for Insert
-As
-*/
---TRIGGERS........................................................
-
 
 --*******************************ADMINISTRADOR******************************************
 
---gestionar (visualizar, crear o deshabilitar) la lista de cursos genérica que utiliza el sistema.
---Crear semestre (1 para el primer semestre, 2 para el segundo semestre y V para el periodo de verano).  
+--Crea un semestre (1 para el primer semestre, 2 para el segundo semestre y V para el periodo de verano).  
 CREATE OR ALTER PROCEDURE crearSemestre @ano int, @periodo int, @cedulaAdmin int
 AS
 Begin
@@ -60,12 +43,154 @@ INSERT INTO Semestre (ano, periodo, cedulaAdmin) values (@ano, @periodo, @cedula
 End;
 Go
 
---Establecerse los cursos que serán impartidos en el semestre.
---Establecer los grupos del curso.
+--Crear curso
+CREATE OR ALTER PROCEDURE crearCurso @Codigo varchar(10), @nombre varchar(30), @carrera varchar(30), @creditos int, @idSemestre int
+AS
+BEGIN
+	INSERT INTO Curso values (@Codigo, @nombre, @carrera, @creditos, @idSemestre);
+END;
+GO
+
+--Eliminar curso
+CREATE OR ALTER PROCEDURE eliminarCurso @Codigo varchar (10)
+AS
+BEGIN
+	DELETE FROM Curso where codigo = @Codigo;
+END;
+GO
+
+--Ver cursos
+CREATE OR ALTER PROCEDURE verCursos
+AS
+BEGIN
+	SELECT * FROM Curso;
+END;
+GO
+
 --Creacion de Documentos (Presentaciones, Quizes, Examenes, Proyectos) y Evaluaciones (Examenes 30%, Proyectos 40%, Quizes 30%) al crear el grupo
+--Crear carpetas
+CREATE OR ALTER PROCEDURE crearCarpeta @nombre varchar(30), @idGrupo int
+AS
+BEGIN
+	insert into Carpetas (nombre, idGrupo) values (@nombre, @idGrupo);
+END;
+GO
+
+--Eliminar carpetas
+CREATE OR ALTER PROCEDURE eliminarCarpetaAdmin @nombre varchar(30), @idGrupo int
+AS
+BEGIN
+	delete from Carpetas where nombre = @nombre and idGrupo = @idGrupo;
+	delete from Documentos where idCarpeta = (select idCarpeta from Carpetas where nombre = @nombre);
+END;
+GO
+
+--Crear Documentos
+CREATE OR ALTER PROCEDURE crearDocumentos @nombreDocumento varchar(30), @archivo varbinary(MAX),@tamano decimal, @nombreCarpeta varchar(30), @idGrupo int
+AS
+BEGIN
+	Declare @idCarpeta int = (select idCarpeta from Carpetas where nombre = @nombreCarpeta and idGrupo = @idGrupo);
+	insert into Documentos(nombre, archivo, tamano, idCarpeta) values (@nombreDocumento, @archivo, @tamano, @idCarpeta);
+END;
+GO
+
+--Eliminar Documentos
+CREATE OR ALTER PROCEDURE eliminarDocumentos @nombre varchar(30), @nombreCarpeta varchar(30), @idGrupo int
+AS
+BEGIN
+	delete from Documentos where idCarpeta = (select idCarpeta from Carpetas where nombre = @nombre) and nombre = @nombre;
+END;
+GO
+
+--Establecer los grupos del curso y le crea las carpetas predeterminadas
+CREATE OR ALTER PROCEDURE crearGrupo @codigoCurso varchar(10), @numeroGrupo int
+AS
+BEGIN
+	Declare @idDelGrupo int;
+	insert into Grupo (codigoCurso, numeroGrupo) values (@codigoCurso, @numeroGrupo);
+	Set @idDelGrupo = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	Execute crearCarpeta @nombre = 'Presentaciones', @idGrupo = @idDelGrupo;
+	Execute crearCarpeta @nombre = 'Quizes', @idGrupo = @idDelGrupo;
+	Execute crearCarpeta @nombre = 'Examenes', @idGrupo = @idDelGrupo;
+	Execute crearCarpeta @nombre = 'Proyectos', @idGrupo = @idDelGrupo;
+END;
+GO
+
+
+
+
 --Establecer los profesores del grupo.
 --Establecer estudiantes del grupo
 --Crear semestre cargando tablas de excel a una tabla temporal y luego ejecutar un procedimiento almacenado
+
+
+--........................................................VIEWS........................................................
+
+--........................................................VIEWS........................................................
+
+--........................................................TRIGGERS........................................................
+
+--Valida que al crear un semestre no exista ya uno con el mismo ano y periodo
+Create or Alter Trigger tr_verificarSemestre on Semestre
+for Insert
+As
+IF Exists (select * from Semestre as s join inserted as i on s.ano = i.ano and s.periodo = i.periodo having COUNT(*)>1)
+BEGIN
+	RAISERROR ('El semestre que intenta crear ya existe en la base de datos.',16,1);
+	ROLLBACK TRANSACTION;
+	Return
+END;
+Go
+
+--Valida que al crear un curso no exista ya
+Create or Alter Trigger tr_verificarCurso on Curso
+for Insert
+As
+IF Exists (select * from Curso as c join inserted as i on c.codigo = i.codigo having COUNT(*)>1)
+BEGIN
+	RAISERROR ('El curso que intenta crear ya existe en la base de datos.',16,1);
+	ROLLBACK TRANSACTION;
+	Return
+END;
+Go
+
+--Valida que no se le agregue el mismo curso al mismo grupo
+Create or Alter Trigger tr_verificarGrupo on Grupo
+for Insert
+As
+IF Exists (select * from Grupo as g join inserted as i on g.codigoCurso = i.codigoCurso and g.numeroGrupo = i.numeroGrupo having COUNT(*)>1)
+BEGIN
+	RAISERROR ('El grupo que intenta crear ya existe en la base de datos.',16,1);
+	ROLLBACK TRANSACTION;
+	Return
+END;
+Go
+
+--Valida que la carpeta que se crea no exista en el mismo grupo
+Create or Alter Trigger tr_verificarCarpeta on Carpetas
+for Insert
+As
+IF Exists (select * from Carpetas as c join inserted as i on c.nombre = i.nombre and c.idGrupo = i.idGrupo having COUNT(*)>1)
+BEGIN
+	RAISERROR ('La carpeta que intenta crear ya existe para ese grupo en la base de datos.',16,1);
+	ROLLBACK TRANSACTION;
+	Return
+END;
+Go
+
+Create or Alter Trigger tr_verificarDocumento on Documentos
+for Insert
+As
+IF Exists (select * from Documentos as d join inserted as i on d.nombre = i.nombre and d.idCarpeta = i.idCarpeta having COUNT(*)>1)
+BEGIN
+	RAISERROR ('Ya existe un documento con ese nombre en esta carpeta',16,1);
+	ROLLBACK TRANSACTION;
+	Return
+END;
+Go
+
+
+--........................................................TRIGGERS........................................................
 
 --*******************************ADMINISTRADOR******************************************
 

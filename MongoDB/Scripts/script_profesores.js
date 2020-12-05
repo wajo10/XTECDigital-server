@@ -4,28 +4,28 @@ module.exports.main = function mainProfesores(){
  
     var profesores = [
         {
-            "carnet": 411110758,
+            "carnet": 411110,
             "nombre":"Fabian Ramirez Arrieta",
             "email":"fabian03@estudiantec.cr",
             "password":"1234",
             "rol": "profesores"
         },
         {
-            "carnet": 400225348,
+            "carnet": 40348,
             "nombre":"Mariana Vargas Ramirez",
             "email":"marianaVargas@estudiantec.cr",
             "password":"1234",
             "rol": "profesores"
         },
         {
-            "carnet": 245248713,
+            "carnet": 24713,
             "nombre":"Mario Alexis Araya Chacón",
             "email":"mario@estudiantec.cr",
             "password":"1234",
             "rol": "profesores"
         },
         {
-            "carnet": 278456519,
+            "carnet": 27519,
             "nombre":"Wajib Zaglul Chinchilla",
             "email":"wajo@estudiantec.cr",
             "password":"1234",
