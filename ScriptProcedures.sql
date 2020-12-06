@@ -24,7 +24,6 @@ INSERT INTO Administrador values (@cedula);
 End;
 Go
 
-
 --*******************************ADMINISTRADOR******************************************
 
 --Crea un semestre (1 para el primer semestre, 2 para el segundo semestre y V para el periodo de verano).  

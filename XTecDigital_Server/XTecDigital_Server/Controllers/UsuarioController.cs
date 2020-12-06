@@ -94,6 +94,8 @@ namespace XTecDigital_Server.Controllers
             };
             collection.InsertOne(document);
         }
+        
+        
         [Route("agregarEstudianteSQL")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
@@ -110,6 +112,7 @@ namespace XTecDigital_Server.Controllers
             conn.Close();
         }
 
+        
         [Route("agregarProfesorSQL")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
@@ -125,5 +128,24 @@ namespace XTecDigital_Server.Controllers
             Debug.WriteLine("Profesor creado exitosamente");
             conn.Close();
         }
+
+        [Route("agregarAdminSQL")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public void agregarAdminSQL(Usuario usuario)
+        {
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            string insertQuery = "agregarProfesor";
+            SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@cedula", usuario.cedula);
+            cmd.ExecuteNonQuery();
+            Debug.WriteLine("Profesor creado exitosamente");
+            conn.Close();
+        }
+
+
+
     }
 }

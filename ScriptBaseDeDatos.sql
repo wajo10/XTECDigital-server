@@ -1,5 +1,5 @@
 --Creacion de la base de datos
---create database baseXTecDigital
+create database baseXTecDigital
 
 
 --Creacion de las tablas de la base de datos
