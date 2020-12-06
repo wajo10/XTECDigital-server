@@ -1,15 +1,7 @@
-
---Validar que al crear una carpeta no exista una carpeta con el mismo nombre en el mismo grupo.
---Validar que al crear un documento no exista una carpeta con el mismo nombre en el mismo grupo.
 --Validar que al crear una evaluacion el rubro no exista ya en ese grupo y que los porcentajes de todas sumen 100
 --Validacion de profesores, administradores y estudiantes en el Log In
-
-CREATE OR ALTER PROCEDURE crearUsuario @nombre varchar(30), @nombreusuario varchar(30), @contra varchar(30), @rol varchar(30)
-AS
-Begin
-INSERT INTO pruebaUsuarios values (@nombre, @nombreusuario, @contra, @rol);
-End;
-Go
+--Validar que al crear una carpeta no exista una carpeta con el mismo nombre en el mismo grupo.
+--Validar que al crear un documento no exista una carpeta con el mismo nombre en el mismo grupo.
 
 CREATE OR ALTER PROCEDURE agregarProfesor @cedula int
 AS
@@ -90,7 +82,9 @@ CREATE OR ALTER PROCEDURE crearDocumentos @nombreDocumento varchar(30), @archivo
 AS
 BEGIN
 	Declare @idCarpeta int = (select idCarpeta from Carpetas where nombre = @nombreCarpeta and idGrupo = @idGrupo);
+	Declare @cantDocu int = (select count(*) from Documentos where idCarpeta = @idCarpeta);
 	insert into Documentos(nombre, archivo, tamano, idCarpeta) values (@nombreDocumento, @archivo, @tamano, @idCarpeta);
+	update Carpetas set tamano = @cantDocu;
 END;
 GO
 
@@ -102,40 +96,65 @@ BEGIN
 END;
 GO
 
+--Crear un rubro
+CREATE OR ALTER PROCEDURE crearRubro @rubro varchar(20), @porcentaje decimal, @codigoCurso varchar (30), @numeroGrupo int
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	insert into Rubros(rubro, porcentaje, idGrupo) values (@rubro, @porcentaje, @idGrupo);
+END;
+GO
+
+--Eliminar un rubro
+CREATE OR ALTER PROCEDURE eliminarRubro @rubro varchar(20), @porcentaje decimal, @codigoCurso varchar (30), @numeroGrupo int
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	delete from Rubros where rubro = @rubro and porcentaje = @porcentaje and idGrupo = @idGrupo;
+END;
+GO
+
+--Crear Evaluacion
+CREATE OR ALTER PROCEDURE crearEvaluacion @grupal int, @nombre varchar(30), @porcentaje decimal, @fechaInicio datetime, @fechaFin datetime,
+@archivo varbinary(MAX), @rubro varchar(20), @codigoCurso varchar(10), @numeroGrupo int
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	DECLARE @idRubro int = (select idRubro from Rubros where rubro = @rubro and idGrupo = @idGrupo);
+	insert into Evaluaciones (grupal, nombre, porcentaje, fechaInicio, fechaFin, archivo, idRubro)
+	values (@grupal, @nombre, @porcentaje, @fechaInicio, @fechaFin, @archivo, @idRubro);
+END;
+GO
+
+--Eliminar Evaluacion
+CREATE OR ALTER PROCEDURE eliminarEvaluacion @nombre varchar (30), @rubro varchar(50), @codigoCurso varchar(10), @numeroGrupo int
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	DECLARE @idRubro int = (select idRubro from Rubros where idGrupo = @idGrupo and rubro = @rubro);
+	Delete from EvaluacionesEstudiantes where idEvaluacion = (select idEvaluacion from Evaluaciones where idRubro = @idRubro and nombre = @nombre);
+	Delete from Evaluaciones where idRubro = @idRubro and nombre = @nombre;
+END;
+GO
+
 --Establecer los grupos del curso y le crea las carpetas predeterminadas
 CREATE OR ALTER PROCEDURE crearGrupo @codigoCurso varchar(10), @numeroGrupo int
 AS
 BEGIN
 	Declare @idDelGrupo int;
+	Declare @fechaDefault datetime = getDate();
 	insert into Grupo (codigoCurso, numeroGrupo) values (@codigoCurso, @numeroGrupo);
 	Set @idDelGrupo = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
 	Execute crearCarpeta @nombre = 'Presentaciones', @idGrupo = @idDelGrupo;
-	Execute crearCarpeta @nombre = 'Quizes', @idGrupo = @idDelGrupo;
+	Execute crearCarpeta @nombre = 'Quices', @idGrupo = @idDelGrupo;
 	Execute crearCarpeta @nombre = 'Examenes', @idGrupo = @idDelGrupo;
 	Execute crearCarpeta @nombre = 'Proyectos', @idGrupo = @idDelGrupo;
+	Execute crearRubro @rubro = 'Quices', @porcentaje = 30, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
+	Execute crearRubro @rubro = 'Examenes', @porcentaje = 30, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
+	Execute crearRubro @rubro = 'Proyectos', @porcentaje = 40, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
 END;
 GO
 
---Crear Evaluacion
-CREATE OR ALTER PROCEDURE crearEvaluacion @grupal int, @fechaInicio datetime, @fechaFin datetime, @archivo varbinary(MAX), 
-@rubro varchar(50), @porcentaje decimal, @codigoCurso varchar(10), @numeroGrupo int
-AS
-BEGIN
-	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
-	insert into Evaluaciones (grupal, fechaInicio, fechaFin, archivo, rubro, porcentaje,idGrupo)
-	values (@grupal, @fechaInicio, @fechaFin, @archivo, @rubro, @porcentaje, @idGrupo);
-END;
-GO
-
---Eliminar Evaluacion
-CREATE OR ALTER PROCEDURE eliminarEvaluacion @rubro varchar(50), @codigoCurso varchar(10), @numeroGrupo int
-AS
-BEGIN
-	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
-	Delete from EvaluacionesEstudiantes where idEvaluacion = (select idEvaluacion from Evaluaciones where rubro = @rubro and idGrupo = @idGrupo);
-	Delete from Evaluaciones where rubro = @rubro and idGrupo = @idGrupo;
-END;
-GO
 --Establecer los profesores del grupo.
 CREATE OR ALTER PROCEDURE asignarProfesorGrupo @codigoCurso varchar(10), @numeroGrupo int, @cedulaProfesor int
 AS
@@ -202,6 +221,7 @@ BEGIN
 END;
 Go
 
+
 --Valida que la carpeta que se crea no exista en el mismo grupo
 Create or Alter Trigger tr_verificarCarpeta on Carpetas
 for Insert
@@ -226,16 +246,56 @@ BEGIN
 END;
 Go
 
+--Valida que existan 2 evaluaciones con el mismo rubro en el mismo grupo
 Create or Alter Trigger tr_verificarEvaluacion on Evaluaciones
 for Insert
 As
-IF Exists (select * from Evaluaciones as e join inserted as i on e.rubro= i.rubro and e.idGrupo = i.idGrupo having COUNT(*)>1)
+IF Exists (select * from Evaluaciones as e join inserted as i on e.idRubro = i.idRubro and e.nombre = i.nombre having COUNT(*)>1)
 BEGIN
-	RAISERROR ('Ya existe una evaluacion con ese nombre en para este grupo',16,1);
+	RAISERROR ('Ya existe una evaluacion con ese nombre en este grupo',16,1);
 	ROLLBACK TRANSACTION;
 	Return
 END;
 Go
+
+--Valida que no se pueda crear el mismo rubro para un grupo
+Create or Alter Trigger tr_verificarRubro on Rubros
+for Insert
+As
+IF Exists (select * from Rubros as r join inserted as i on r.idGrupo = i.idGrupo and r.rubro = i.rubro having COUNT(*)>1)
+BEGIN
+	RAISERROR ('Ya existe un rubro con ese nombre en este grupo',16,1);
+	ROLLBACK TRANSACTION;
+	Return
+END;
+Go
+
+--Valida que no se puedan eliminar los rubros creados al inicializar el semestre
+Create or Alter Trigger tr_EliminarRubro on Rubros
+for delete
+As
+Declare @rubro varchar(30) = (select rubro from deleted);
+If (@rubro = 'Quices' or @rubro = 'Examenes' or @rubro = 'Proyectos')
+BEGIN
+	RAISERROR ('No se pueden eliminar los rubros principales',16,1);
+	ROLLBACK TRANSACTION;
+	Return
+END;
+Go
+
+--Valida que no se puedan eliminar las carpetas creadas al inicializar el semestre
+Create or Alter Trigger tr_EliminarCarpetas on Carpetas
+for delete
+As
+Declare @nombreCarpeta varchar(30) = (select nombre from deleted);
+If (@nombreCarpeta = 'Quices' or @nombreCarpeta = 'Examenes' or @nombreCarpeta = 'Proyectos' or @nombreCarpeta = 'Presentaciones')
+BEGIN
+	RAISERROR ('No se pueden eliminar las carpetas principales',16,1);
+	ROLLBACK TRANSACTION;
+	Return
+END;
+Go
+
 
 --........................................................TRIGGERS........................................................
 
@@ -246,6 +306,14 @@ Go
 --*******************************PROFESOR******************************************
 
 --Gestion de carpetas (visualizar, editar, agregar o eliminar carpetas en el grupo) * NO PUEDE ELIMINAR LAS CREADAS POR EL SEMESTRE
+/*
+CREATE OR ALTER PROCEDURE agregarCarpeta @nombre varchar(30), @carrera varchar(30), @creditos int, @idSemestre int
+AS
+BEGIN
+	INSERT INTO Curso values (@Codigo, @nombre, @carrera, @creditos, @idSemestre);
+END;
+GO
+*/
 --Gestion de documentos (visualizar, editar, agregar o eliminar documentos en el grupo)
 --Gestion de rubros (visualizar, editar, agregar o eliminar rubros en el grupo) *LA SUMA DE TODOS DEBE DAR 100%
 --Gestion de evaluaciones (visualizar, editar, agregar o eliminar evaluaciones en el grupo)*SI ES GRUPAL DEBE ASIGNAR LOS GRUPOS DE TRABAJO
@@ -254,6 +322,10 @@ Go
 --Guardar o publicar notas *TRIGGER QUE CREA UNA NOTICIA CUANDO SE PUBLICAN LAS NOTAS
 --Reporte de notas *VISTA QUE DETALLE TODAS LAS NOTAS Y CALCULE EL VALOR OBTENIDO PARA CADA RUBRO, ASÍ COMO LA NOTA FINAL CURSO Y CREAR PDF
 --Reporte de estudiantes *VISTA CON TODA LA INFORMACION DE LOS ESTUDIANTES DE UN GRUPO Y CREAR PDF
+
+--........................................................TRIGGERS........................................................
+
+--........................................................TRIGGERS........................................................
 
 --*******************************PROFESOR******************************************
 

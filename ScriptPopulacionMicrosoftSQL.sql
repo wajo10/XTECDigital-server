@@ -42,7 +42,7 @@ Execute agregarEstudiantesGrupo @carnet = '34312', @codigoCurso = 'CE3101', @num
 Execute agregarEstudiantesGrupo @carnet = '453343', @codigoCurso = 'CE3101', @numeroGrupo = 1;
 
 /*
-delete from Grupo
+select * from Evaluaciones
+DBCC CHECKIDENT ('Evaluaciones', RESEED, 0) 
 select * from Carpetas
-DBCC CHECKIDENT ('Grupo', RESEED, 0) 
 */

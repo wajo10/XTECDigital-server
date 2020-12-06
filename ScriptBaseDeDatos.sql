@@ -85,17 +85,26 @@ create table Noticias(
 	primary key (idNoticia)
 );
 
+create table Rubros(
+	idRubro int identity (1,1),
+	rubro varchar (20),
+	porcentaje decimal,
+	idGrupo int,
+	primary key (idRubro)
+);
+
 create table Evaluaciones(
 	idEvaluacion int identity (1,1),
-	rubro varchar (50) not null,
-	porcentaje decimal not null,
 	grupal bit default 0,
+	nombre varchar(20),
+	porcentaje decimal not null,
 	fechaInicio datetime not null,
 	fechaFin dateTime not null,
-	archivo varbinary(max) not null,
-	idGrupo int not null,
+	archivo varbinary(max),
+	idRubro int not null,
 	primary key (idEvaluacion)
 );
+
 
 create table EvaluacionesEstudiantes (
 	carnet varchar(15) not null,
@@ -145,9 +154,13 @@ Alter table Noticias
 Add constraint FK_idGrupoNoticias
 foreign key (idGrupo) references Grupo (idGrupo);
 
-Alter table Evaluaciones
-Add constraint FK_idGrupoEvaluaciones
+Alter table Rubros
+Add constraint FK_idGrupoRubro
 foreign key (idGrupo) references Grupo (idGrupo);
+
+Alter table Evaluaciones
+Add constraint FK_idRubro
+foreign key (idRubro) references Rubros (idRubro);
 
 Alter table EvaluacionesEstudiantes
 Add constraint FK_idEvaluacion
