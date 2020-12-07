@@ -78,12 +78,12 @@ END;
 GO
 
 --Crear Documentos
-CREATE OR ALTER PROCEDURE crearDocumentos @nombreDocumento varchar(30), @archivo varbinary(MAX),@tamano decimal, @nombreCarpeta varchar(30), @idGrupo int
+CREATE OR ALTER PROCEDURE crearDocumentos @nombreDocumento varchar(30), @archivo varbinary(MAX),@tamano decimal, @nombreCarpeta varchar(30), @idGrupo int, @tipoArchivo varchar (10)
 AS
 BEGIN
 	Declare @idCarpeta int = (select idCarpeta from Carpetas where nombre = @nombreCarpeta and idGrupo = @idGrupo);
 	Declare @cantDocu int = (select count(*) from Documentos where idCarpeta = @idCarpeta);
-	insert into Documentos(nombre, archivo, tamano, idCarpeta) values (@nombreDocumento, @archivo, @tamano, @idCarpeta);
+	insert into Documentos(nombre, archivo, tamano, idCarpeta, tipoArchivo) values (@nombreDocumento, @archivo, @tamano, @idCarpeta, @tipoArchivo);
 	update Carpetas set tamano = @cantDocu;
 END;
 GO
