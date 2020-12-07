@@ -12,12 +12,12 @@ namespace XTecDigital_Server.Models
         }
         public int idDocumento { get; set; }
         public string nombre { get; set; }
-        public byte[] archivo { get; set; }
+        public string archivo { get; set; }
         public float tamano { get; set; }
         public DateTime fechaSubido { get; set; }
         public int idCarpeta { get; set; }
         public string tipoArchivo { get; set; }
         public string nombreCarpeta { get; set; }
-        public string idGrupo { get; set; }
+        public int idGrupo { get; set; }
     }
 }

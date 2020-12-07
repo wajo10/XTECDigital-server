@@ -77,15 +77,23 @@ END;
 GO
 
 --Crear Documentos
-CREATE OR ALTER PROCEDURE crearDocumentos @nombreDocumento varchar(30), @archivo varbinary(MAX),@tamano decimal, @nombreCarpeta varchar(30), @idGrupo int, @tipoArchivo varchar (10)
+CREATE OR ALTER PROCEDURE crearDocumentos @nombreDocumento varchar(30), @archivo varchar(MAX),@tamano decimal, @nombreCarpeta varchar(30), @idGrupo int, @tipoArchivo varchar (10)
 AS
 BEGIN
+	print @archivo;
 	Declare @idCarpeta int = (select idCarpeta from Carpetas where nombre = @nombreCarpeta and idGrupo = @idGrupo);
 	Declare @cantDocu int = (select count(*) from Documentos where idCarpeta = @idCarpeta);
-	insert into Documentos(nombre, archivo, tamano, idCarpeta, tipoArchivo) values (@nombreDocumento, @archivo, @tamano, @idCarpeta, @tipoArchivo);
+	insert into Documentos(nombre, archivo, tamano, idCarpeta, tipoArchivo) values (@nombreDocumento, Convert(varbinary(MAX), @archivo), @tamano, @idCarpeta, @tipoArchivo);
 	update Carpetas set tamano = @cantDocu;
 END;
 GO
+
+
+/*
+select * from Grupo;
+select * from Carpetas;
+select * from Documentos;
+*/
 
 --Eliminar Documentos
 CREATE OR ALTER PROCEDURE eliminarDocumentos @nombre varchar(30), @nombreCarpeta varchar(30), @idGrupo int

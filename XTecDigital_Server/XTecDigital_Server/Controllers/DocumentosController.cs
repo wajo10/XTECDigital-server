@@ -18,15 +18,19 @@ namespace XTecDigital_Server.Controllers
     {
         private string serverKey = Startup.getKey();
 
-        [Route("crearCarpeta")]
+        [Route("crearDocumentos")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
-        public void crearCarpeta(Documento documento)
+        public void crearDocumentos(Documento documento)
         {
             SqlConnection conn = new SqlConnection(serverKey);
             conn.Open();
-            string insertQuery = "crearCarpeta";
+            string insertQuery = "crearDocumentos";
             SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            var prueba = Convert.FromBase64String(documento.archivo);
+            string hex = BitConverter.ToString(prueba);
+            hex = hex.Replace("-", "");
+            hex = "0x" + hex;
             cmd.CommandType = System.Data.CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@nombreDocumento", documento.nombre);
             cmd.Parameters.AddWithValue("@archivo", documento.archivo);
@@ -34,16 +38,9 @@ namespace XTecDigital_Server.Controllers
             cmd.Parameters.AddWithValue("@nombreCarpeta", documento.nombreCarpeta);
             cmd.Parameters.AddWithValue("@idGrupo", documento.idGrupo);
             cmd.Parameters.AddWithValue("@tipoArchivo", documento.tipoArchivo);
-            try
-            {
-                cmd.ExecuteNonQuery();
-                Debug.WriteLine("Documento creado exitosamente");
-            }
-            catch
-            {
-                Debug.WriteLine("Error al crear carpeta");
-            }
+            cmd.ExecuteNonQuery();
             conn.Close();
+
         }
 
         [Route("eliminarDocumentos")]
@@ -70,5 +67,32 @@ namespace XTecDigital_Server.Controllers
             }
             conn.Close();
         }
+
+
+        [Route("fileO")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public void eliminarDocumentos(Documento documento)
+        {
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            string insertQuery = "eliminarDocumentos";
+            SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@nombre", documento.nombre);
+            cmd.Parameters.AddWithValue("@nombreCarpeta", documento.nombreCarpeta);
+            cmd.Parameters.AddWithValue("@idGrupo", documento.idGrupo);
+            try
+            {
+                cmd.ExecuteNonQuery();
+                Debug.WriteLine("Documento creado exitosamente");
+            }
+            catch
+            {
+                Debug.WriteLine("Error al crear carpeta");
+            }
+            conn.Close();
+        }
+
     }
 }
