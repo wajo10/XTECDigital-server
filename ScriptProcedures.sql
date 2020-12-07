@@ -88,13 +88,6 @@ BEGIN
 END;
 GO
 
-
-/*
-select * from Grupo;
-select * from Carpetas;
-select * from Documentos;
-*/
-
 --Eliminar Documentos
 CREATE OR ALTER PROCEDURE eliminarDocumentos @nombre varchar(30), @nombreCarpeta varchar(30), @idGrupo int
 AS
@@ -321,6 +314,13 @@ BEGIN
 END;
 GO
 */
+CREATE OR ALTER PROCEDURE verCarpetasGrupo @codigoCurso varchar(30), @numeroGrupo int
+AS
+BEGIN
+DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+Select * from Carpetas where idGrupo = @idGrupo;
+END;
+GO
 --Gestion de documentos (visualizar, editar, agregar o eliminar documentos en el grupo)
 --Gestion de rubros (visualizar, editar, agregar o eliminar rubros en el grupo) *LA SUMA DE TODOS DEBE DAR 100%
 --Gestion de evaluaciones (visualizar, editar, agregar o eliminar evaluaciones en el grupo)*SI ES GRUPAL DEBE ASIGNAR LOS GRUPOS DE TRABAJO
