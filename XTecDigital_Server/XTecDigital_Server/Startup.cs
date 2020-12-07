@@ -22,7 +22,7 @@ namespace XTecDigital_Server
         }
         public static string getKey()
         {
-            return "Data Source=DESKTOP-A1ENCTT;Initial Catalog=baseXTecDigital;Integrated Security=True";
+            return "Data Source=DESKTOP-UBFFPD5;Initial Catalog=baseXTecDigital;Integrated Security=True";
         }
 
         public IConfiguration Configuration { get; }

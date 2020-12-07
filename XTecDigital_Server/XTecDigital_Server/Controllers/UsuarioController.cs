@@ -94,6 +94,8 @@ namespace XTecDigital_Server.Controllers
             };
             collection.InsertOne(document);
         }
+        
+        
         [Route("agregarEstudianteSQL")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
@@ -105,11 +107,19 @@ namespace XTecDigital_Server.Controllers
             SqlCommand cmd = new SqlCommand(insertQuery, conn);
             cmd.CommandType = System.Data.CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@carnet", usuario.carnet);
-            cmd.ExecuteNonQuery();
-            Debug.WriteLine("Estudiante creado exitosamente");
+            try
+            {
+                cmd.ExecuteNonQuery();
+                Debug.WriteLine("Estudiante creado exitosamente");
+            }
+            catch
+            {
+                Debug.WriteLine("Error al agregar estudiante");
+            }
             conn.Close();
         }
 
+        
         [Route("agregarProfesorSQL")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
@@ -121,9 +131,42 @@ namespace XTecDigital_Server.Controllers
             SqlCommand cmd = new SqlCommand(insertQuery, conn);
             cmd.CommandType = System.Data.CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@cedula", usuario.cedula);
-            cmd.ExecuteNonQuery();
-            Debug.WriteLine("Profesor creado exitosamente");
+            try
+            {
+                cmd.ExecuteNonQuery();
+                Debug.WriteLine("Profesor creado exitosamente");
+            }
+            catch
+            {
+                Debug.WriteLine("Error al agregar profesor");
+            }
             conn.Close();
         }
+
+        [Route("agregarAdminSQL")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public void agregarAdminSQL(Usuario usuario)
+        {
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            string insertQuery = "agregarAdmin";
+            SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@cedula", usuario.cedula);
+            try
+            {
+                cmd.ExecuteNonQuery();
+                Debug.WriteLine("Administrador creado exitosamente");
+            }
+            catch
+            {
+                Debug.WriteLine("Error al agregar administrador");
+            }
+            conn.Close();
+        }
+
+
+
     }
 }
