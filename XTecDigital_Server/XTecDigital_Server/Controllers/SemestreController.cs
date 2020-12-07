@@ -33,8 +33,15 @@ namespace XTecDigital_Server.Controllers
             cmd.Parameters.AddWithValue("@ano", semestre.ano);
             cmd.Parameters.AddWithValue("@periodo", semestre.periodo);
             cmd.Parameters.AddWithValue("@cedulaAdmin", semestre.cedulaAdmin);
-            cmd.ExecuteNonQuery();
-            Debug.WriteLine("Semestre creado exitosamente");
+            try
+            {
+                cmd.ExecuteNonQuery();
+                Debug.WriteLine("Semestre creado exitosamente");
+            }
+            catch
+            {
+                Debug.WriteLine("Error al crear semestre");
+            }
             conn.Close();
         }
 

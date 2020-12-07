@@ -33,8 +33,15 @@ namespace XTecDigital_Server.Controllers
             cmd.Parameters.AddWithValue("@carrera", curso.carrera);
             cmd.Parameters.AddWithValue("@creditos", curso.creditos);
             cmd.Parameters.AddWithValue("@idSemestre", curso.idSemestre);
-            cmd.ExecuteNonQuery();
-            Debug.WriteLine("Curso creado exitosamente");
+            try
+            {
+                cmd.ExecuteNonQuery();
+                Debug.WriteLine("Curso creado exitosamente");
+            }
+            catch
+            {
+                Debug.WriteLine("Error al crear curso");
+            }
             conn.Close();
         }
 
@@ -49,8 +56,15 @@ namespace XTecDigital_Server.Controllers
             SqlCommand cmd = new SqlCommand(insertQuery, conn);
             cmd.CommandType = System.Data.CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@Codigo", curso.codigo);
-            cmd.ExecuteNonQuery();
-            Debug.WriteLine("Curso eliminado exitosamente");
+            try
+            {
+                cmd.ExecuteNonQuery();
+                Debug.WriteLine("Curso eliminado exitosamente");
+            }
+            catch
+            {
+                Debug.WriteLine("Error al eliminar curso");
+            }
             conn.Close();
         }
 
@@ -68,7 +82,6 @@ namespace XTecDigital_Server.Controllers
             SqlCommand cmd = new SqlCommand(insertQuery, conn);
             cmd.CommandType = System.Data.CommandType.StoredProcedure;
             SqlDataReader    dr = cmd.ExecuteReader();
-            Debug.WriteLine("Curso eliminado exitosamente");
 
             try
             {
@@ -102,6 +115,7 @@ namespace XTecDigital_Server.Controllers
                 var tempList = (IList<object>)cursos[x];
                 retornar.Add(tempList[0]);
             }
+            conn.Close();
             return retornar;
 
         }
