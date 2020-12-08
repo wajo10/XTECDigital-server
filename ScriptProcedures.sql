@@ -26,19 +26,11 @@ Go
 
 --*******************************ADMINISTRADOR******************************************
 
---Crea un semestre (1 para el primer semestre, 2 para el segundo semestre y V para el periodo de verano).  
-CREATE OR ALTER PROCEDURE crearSemestre @ano int, @periodo int, @cedulaAdmin int
-AS
-Begin
-INSERT INTO Semestre (ano, periodo, cedulaAdmin) values (@ano, @periodo, @cedulaAdmin);
-End;
-Go
-
 --Crear curso
-CREATE OR ALTER PROCEDURE crearCurso @Codigo varchar(10), @nombre varchar(30), @carrera varchar(30), @creditos int, @idSemestre int
+CREATE OR ALTER PROCEDURE crearCurso @Codigo varchar(10), @nombre varchar(30), @carrera varchar(30), @creditos int, @habilitado bit, @cedulaAdmin int
 AS
 BEGIN
-	INSERT INTO Curso values (@Codigo, @nombre, @carrera, @creditos, @idSemestre);
+	INSERT INTO Curso values (@Codigo, @nombre, @carrera, @creditos, @habilitado, @cedulaAdmin);
 END;
 GO
 
@@ -50,7 +42,7 @@ BEGIN
 END;
 GO
 
---Ver cursos
+--Ver todos los cursos que hay en la base de datos
 CREATE OR ALTER PROCEDURE verCursos
 AS
 BEGIN
@@ -58,35 +50,63 @@ BEGIN
 END;
 GO
 
---Creacion de Documentos (Presentaciones, Quizes, Examenes, Proyectos) y Evaluaciones (Examenes 30%, Proyectos 40%, Quizes 30%) al crear el grupo
---Crear carpetas
-CREATE OR ALTER PROCEDURE crearCarpeta @nombre varchar(30), @idGrupo int
+--Ver todos los cursos disponibles
+CREATE OR ALTER PROCEDURE verCursosDisponibles
 AS
 BEGIN
+	SELECT * FROM Curso where habilitado = 1;
+END;
+GO
+
+--Habilitar o deshabilitar un curso
+CREATE OR ALTER PROCEDURE habilitar_deshabilitarCurso @nombre varchar(30)
+AS
+BEGIN
+	update Curso set habilitado = habilitado ^ 1 where nombre = @nombre;
+END;
+GO
+
+--Crea un semestre (1 para el primer semestre, 2 para el segundo semestre y V para el periodo de verano).  
+CREATE OR ALTER PROCEDURE crearSemestre @ano int, @periodo int, @cedulaAdmin int
+AS
+Begin
+INSERT INTO Semestre (ano, periodo, cedulaAdmin) values (@ano, @periodo, @cedulaAdmin);
+End;
+Go
+
+--Creacion de Documentos (Presentaciones, Quizes, Examenes, Proyectos) y Evaluaciones (Examenes 30%, Proyectos 40%, Quizes 30%) al crear el grupo
+--Crear carpetas
+CREATE OR ALTER PROCEDURE crearCarpeta @nombre varchar(30), @codigoCurso varchar(10), @numeroGrupo int
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
 	insert into Carpetas (nombre, idGrupo) values (@nombre, @idGrupo);
 END;
 GO
 
+
 --Eliminar carpetas
-CREATE OR ALTER PROCEDURE eliminarCarpetaAdmin @nombre varchar(30), @idGrupo int
+CREATE OR ALTER PROCEDURE eliminarCarpeta @nombre varchar(30), @codigoCurso varchar(10), @numeroGrupo int
 AS
 BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
 	delete from Carpetas where nombre = @nombre and idGrupo = @idGrupo;
 	delete from Documentos where idCarpeta = (select idCarpeta from Carpetas where nombre = @nombre);
 END;
 GO
 
+
 --Crear Documentos
 CREATE OR ALTER PROCEDURE crearDocumentos @nombreDocumento varchar(30), @archivo varchar(MAX),@tamano decimal, @nombreCarpeta varchar(30), @idGrupo int, @tipoArchivo varchar (10)
 AS
 BEGIN
-	print @archivo;
 	Declare @idCarpeta int = (select idCarpeta from Carpetas where nombre = @nombreCarpeta and idGrupo = @idGrupo);
 	Declare @cantDocu int = (select count(*) from Documentos where idCarpeta = @idCarpeta);
 	insert into Documentos(nombre, archivo, tamano, idCarpeta, tipoArchivo) values (@nombreDocumento, Convert(varbinary(MAX), @archivo), @tamano, @idCarpeta, @tipoArchivo);
-	update Carpetas set tamano = @cantDocu;
+	update Carpetas set tamano = @cantDocu where idCarpeta =@idCarpeta;
 END;
 GO
+
 
 --Eliminar Documentos
 CREATE OR ALTER PROCEDURE eliminarDocumentos @nombre varchar(30), @nombreCarpeta varchar(30), @idGrupo int
@@ -141,19 +161,18 @@ GO
 CREATE OR ALTER PROCEDURE crearGrupo @codigoCurso varchar(10), @numeroGrupo int
 AS
 BEGIN
-	Declare @idDelGrupo int;
 	Declare @fechaDefault datetime = getDate();
 	insert into Grupo (codigoCurso, numeroGrupo) values (@codigoCurso, @numeroGrupo);
-	Set @idDelGrupo = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
-	Execute crearCarpeta @nombre = 'Presentaciones', @idGrupo = @idDelGrupo;
-	Execute crearCarpeta @nombre = 'Quices', @idGrupo = @idDelGrupo;
-	Execute crearCarpeta @nombre = 'Examenes', @idGrupo = @idDelGrupo;
-	Execute crearCarpeta @nombre = 'Proyectos', @idGrupo = @idDelGrupo;
+	Execute crearCarpeta @nombre = 'Presentaciones', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo
+	Execute crearCarpeta @nombre = 'Quices', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo
+	Execute crearCarpeta @nombre = 'Examenes', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo
+	Execute crearCarpeta @nombre = 'Proyectos', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo
 	Execute crearRubro @rubro = 'Quices', @porcentaje = 30, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
 	Execute crearRubro @rubro = 'Examenes', @porcentaje = 30, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
 	Execute crearRubro @rubro = 'Proyectos', @porcentaje = 40, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
 END;
 GO
+
 
 --Establecer los profesores del grupo.
 CREATE OR ALTER PROCEDURE asignarProfesorGrupo @codigoCurso varchar(10), @numeroGrupo int, @cedulaProfesor int
@@ -306,14 +325,8 @@ Go
 --*******************************PROFESOR******************************************
 
 --Gestion de carpetas (visualizar, editar, agregar o eliminar carpetas en el grupo) * NO PUEDE ELIMINAR LAS CREADAS POR EL SEMESTRE
-/*
-CREATE OR ALTER PROCEDURE agregarCarpeta @nombre varchar(30), @carrera varchar(30), @creditos int, @idSemestre int
-AS
-BEGIN
-	INSERT INTO Curso values (@Codigo, @nombre, @carrera, @creditos, @idSemestre);
-END;
-GO
-*/
+
+--Ver las carpetas de un grupo
 CREATE OR ALTER PROCEDURE verCarpetasGrupo @codigoCurso varchar(30), @numeroGrupo int
 AS
 BEGIN
@@ -321,7 +334,30 @@ DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCur
 Select * from Carpetas where idGrupo = @idGrupo;
 END;
 GO
+
+--Editar carpetas de un grupo
+CREATE OR ALTER PROCEDURE editarCarpetaGrupo @nombreCarpeta varchar(30), @nuevoNombre varchar(30), @codigoCurso varchar(30), @numeroGrupo int
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	UPDATE Carpetas set nombre = @nuevoNombre where nombre = @nombreCarpeta and idGrupo = @idGrupo;
+END;
+GO
+
+
 --Gestion de documentos (visualizar, editar, agregar o eliminar documentos en el grupo)
+
+CREATE OR ALTER PROCEDURE editarDocumentos @nombreDocumento varchar (30), @nombreCarpeta varchar(30), @codigoCurso varchar (10), @numeroGrupo int,
+@nuevoNombre varchar(30)
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo );
+	DECLARE @idCarpeta int = (select idCarpeta from Carpetas where nombre = @nombreCarpeta and idGrupo = @idGrupo);
+	Update Documentos set nombre = @nuevoNombre,  fechaSubido = getDate() where nombre = @nombreDocumento;
+END;
+GO
+
+
 --Gestion de rubros (visualizar, editar, agregar o eliminar rubros en el grupo) *LA SUMA DE TODOS DEBE DAR 100%
 --Gestion de evaluaciones (visualizar, editar, agregar o eliminar evaluaciones en el grupo)*SI ES GRUPAL DEBE ASIGNAR LOS GRUPOS DE TRABAJO
 --Gestion de noticias (visualizar, crear, modificar y eliminar noticias)
@@ -331,6 +367,37 @@ GO
 --Reporte de estudiantes *VISTA CON TODA LA INFORMACION DE LOS ESTUDIANTES DE UN GRUPO Y CREAR PDF
 
 --........................................................TRIGGERS........................................................
+--Valida que no se puedan modificar carpetas principales o que se trate de cambiar el nombre por una ya existente
+Create or Alter Trigger tr_ActualizarCarpetas on Carpetas
+for update
+As
+Declare @nombreCarpeta varchar(30) = (select nombre from deleted);
+If (@nombreCarpeta = 'Quices' or @nombreCarpeta = 'Examenes' or @nombreCarpeta = 'Proyectos' or @nombreCarpeta = 'Presentaciones')
+BEGIN
+	RAISERROR ('No se pueden alterar las carpetas principales',16,1);
+	ROLLBACK TRANSACTION;
+	Return;
+END;
+Else if Exists (select * from Carpetas as c join inserted as i on c.nombre = i.nombre and c.idGrupo = i.idGrupo having COUNT(*)>1)
+BEGIN
+	RAISERROR ('Ya existe una carpeta con ese nombre en el grupo',16,1);
+	ROLLBACK TRANSACTION;
+	Return
+END;
+Go
+
+--Valida que no se pueda cambiar el nombre de un documento por uno que ya existe
+Create or Alter Trigger tr_ActualizarDocumentos on Documentos
+for update
+As
+If Exists (select * from Documentos as d join inserted as i on d.nombre = i.nombre and d.idCarpeta = i.idCarpeta having COUNT(*)>1)
+BEGIN
+	RAISERROR ('Ya existe un documento con ese nombre en el grupo',16,1);
+	ROLLBACK TRANSACTION;
+	Return
+END;
+Go
+
 
 --........................................................TRIGGERS........................................................
 
