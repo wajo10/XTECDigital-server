@@ -8,10 +8,14 @@ namespace XTecDigital_Server.Models
     public class FileManager
     {
         public string Action { get; set; }
-        public string Path { get; set; }
+        public string path { get; set; }
         public int Grupo { get; set; }
         public string Curso { get; set; }
-       
+        public string getString()
+        {
+            String str = "Action: "+ Action + " Path: " + path + " Grupo: " + Grupo.ToString() + " Curso: " + Curso;
+            return str;
+        }
     }
 
    

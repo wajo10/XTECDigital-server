@@ -87,8 +87,8 @@ namespace XTecDigital_Server.Controllers
                     string insertQuery = "verCarpetasGrupo";
                     SqlCommand cmd = new SqlCommand(insertQuery, conn);
                     cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@codigoCurso", "CE3101");
-                    cmd.Parameters.AddWithValue("@numeroGrupo", 1);
+                    cmd.Parameters.AddWithValue("@codigoCurso", args.Curso);
+                    cmd.Parameters.AddWithValue("@numeroGrupo",args.Grupo);
                     SqlDataReader dr = cmd.ExecuteReader();
                     var slash = '/';
                     try
@@ -104,9 +104,27 @@ namespace XTecDigital_Server.Controllers
                             dateModified = (DateTime)dr[3],
                             isFile = false,
                             size = (int)dr[2],
-                            hasChild = true,
-                            type = args.Curso,
+                            hasChild = false,
+                            type = "",
                             filterPath = slash
+                            /*
+                            filterId = args.Grupo,
+                            id = args.Grupo,
+                            names = args.Grupo,
+                            newName = args.Grupo,
+                            parentdId = args.Grupo,
+                            path = args.Grupo,
+                            permission = args.Grupo,
+                            previousName = args.Grupo,
+                            renameFiles = args.Grupo,
+                            searchString = args.Grupo,
+                            showHiddenItems = false,
+                            targetData = args.Grupo,
+                            targetPath = args.Grupo,
+                            uploadFiles = args.Grupo,
+                            action = args.Grupo,
+                            caseSensitive = args.Grupo,
+                            data = args.Grupo*/
                         },
 
                      };
@@ -132,21 +150,26 @@ namespace XTecDigital_Server.Controllers
                     var error = new { code = 0, mesagge = " none" };
                     var details = new {};
                     var cwd = new{
-                        name = "Root", size = 0,
+                        name = "Root", 
+                        size = 0,
                         dateModified = "2019-02-28T03:48:19.8319708+00:00",
                         dateCreated = "2019-02-27T17:36:15.812193+00:00",
-                        hasChild = true,
+                        hasChild = false,
                         isFile = true,
                         type = " ",
-                        filterPath = slash
-                   }
+                        filterPath = slash,
+                    }
                     ;
-                    retornar.Add(new { cwd = cwd });
-                    retornar.Add(new { files = tempFiles });
-                    retornar.Add(new { error = args.Curso });
-                    retornar.Add(new { details = args.Curso});
-                    Debug.WriteLine("Envio datos");
-                    return retornar;
+                    var jsonRet = new
+                    {
+                        cwd = cwd,
+                        files = tempFiles,
+                        error = args.Curso,
+                        details = args.Curso
+                    };
+                  
+                    Debug.WriteLine(args.getString());
+                    return jsonRet;
                     /*
                 case "delete":
                     // deletes the selected file(s) or folder(s) from the given path.
