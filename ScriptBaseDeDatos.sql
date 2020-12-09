@@ -8,6 +8,7 @@ create table Administrador (
 	primary key (cedula)
 );
 
+
 create table Semestre (
 	idSemestre int identity(1,1),
 	ano int not null,
@@ -16,13 +17,22 @@ create table Semestre (
 	primary key (idSemestre)
 );
 
+
 create table Curso (
-	codigo varchar(10),
+	codigo varchar(10) not null,
 	nombre varchar(50) not null unique,
 	carrera varchar(50) not null,
 	creditos int not null,
-	idSemestre int not null,
+	habilitado bit default 1,
+	idAdministrador int not null,
 	primary key (codigo)
+);
+
+
+create table CursosPorSemestre (
+	idSemestre int not null,
+	codigoCurso varchar(10) not null,
+	primary key (idSemestre, codigoCurso)
 );
 
 
@@ -90,16 +100,17 @@ create table Noticias(
 create table Rubros(
 	idRubro int identity (1,1),
 	rubro varchar (20),
-	porcentaje decimal,
+	porcentaje decimal(3,2),
 	idGrupo int,
 	primary key (idRubro)
 );
+
 
 create table Evaluaciones(
 	idEvaluacion int identity (1,1),
 	grupal bit default 0,
 	nombre varchar(20),
-	porcentaje decimal not null,
+	porcentaje decimal(3,2) not null,
 	fechaInicio datetime not null,
 	fechaFin dateTime not null,
 	archivo varbinary(max),
@@ -112,7 +123,7 @@ create table EvaluacionesEstudiantes (
 	carnet varchar(15) not null,
 	idEvaluacion int not null,
 	grupo int default 0,
-	nota decimal,
+	nota decimal(3,2),
 	comentario varchar (300),
 	archivoRetroalimentacion varbinary(max),
 	archivoSolucion varbinary(max),
@@ -125,11 +136,16 @@ Add constraint FK_Admin
 foreign key (cedulaAdmin) references Administrador (cedula);
 
 Alter table Curso
-Add constraint FK_Semestre
-foreign key (idSemestre) references Semestre (idSemestre);
+Add constraint FK_IdAdministrador
+foreign key (idAdministrador) references Administrador (cedula);
 
-Alter table Grupo
-Add constraint FK_codigoCurso
+
+Alter table CursosPorSemestre
+Add constraint FK_idSemestrePorCurso
+foreign key (idsemestre) references Semestre (idSemestre);
+
+Alter table CursosPorSemestre
+Add constraint FK_codigoCursoPorSemestre
 foreign key (codigoCurso) references Curso (codigo);
 
 Alter table ProfesoresGrupo

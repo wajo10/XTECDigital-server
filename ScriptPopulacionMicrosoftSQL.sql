@@ -20,9 +20,10 @@ Execute agregarEstudiante @carnet = '14453544';
 Execute crearSemestre @ano = '2021', @periodo = 1, @cedulaAdmin = '11111';
 
 --Creacion de cursos
-Execute crearCurso @Codigo = 'CE3101', @nombre = 'BASES DE DATOS', @carrera = 'INGENIERIA EN COMPUTADORES', @creditos = 4, @idSemestre = 1;
-Execute crearCurso @Codigo = 'MA0101', @nombre = 'MATEMATICA GENERAL', @carrera = 'INGENIERIA EN COMPUTADORES', @creditos = 2, @idSemestre = 1;
-Execute crearCurso @Codigo = 'EL2114', @nombre = 'CIRCUITOS CA', @carrera = 'INGENIERIA ELECTRONICA', @creditos = 4, @idSemestre = 1;
+Execute crearCurso @Codigo = 'CE3101', @nombre = 'BASES DE DATOS', @carrera = 'INGENIERIA EN COMPUTADORES', @creditos = 4, @habilitado = 1, @cedulaAdmin = 11111;
+Execute crearCurso @Codigo = 'MA0101', @nombre = 'MATEMATICA GENERAL', @carrera = 'INGENIERIA EN COMPUTADORES', @creditos = 2, @habilitado = 1, @cedulaAdmin = 11111;
+Execute crearCurso @Codigo = 'EL2114', @nombre = 'CIRCUITOS CA', @carrera = 'INGENIERIA ELECTRONICA', @creditos = 4, @habilitado = 1, @cedulaAdmin = 11111;
+Execute crearCurso @Codigo = 'CE1010', @nombre = 'intro y taller', @carrera = 'INGENIERIA EN COMPUTADORES', @creditos = 4, @habilitado = 1, @cedulaAdmin = 11111;
 
 --Creacion y asignacion de grupos
 Execute crearGrupo @codigoCurso = 'CE3101', @numeroGrupo = 1;
