@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using XTecDigital_Server.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Cors;
-using System.Diagnostics;
-using System.Text.Json;
 using MongoDB.Driver;
 using MongoDB.Bson;
 using System.Data.SqlClient;
@@ -107,15 +102,7 @@ namespace XTecDigital_Server.Controllers
             SqlCommand cmd = new SqlCommand(insertQuery, conn);
             cmd.CommandType = System.Data.CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@carnet", usuario.carnet);
-            try
-            {
-                cmd.ExecuteNonQuery();
-                Debug.WriteLine("Estudiante creado exitosamente");
-            }
-            catch
-            {
-                Debug.WriteLine("Error al agregar estudiante");
-            }
+            cmd.ExecuteNonQuery();
             conn.Close();
         }
 
@@ -131,15 +118,7 @@ namespace XTecDigital_Server.Controllers
             SqlCommand cmd = new SqlCommand(insertQuery, conn);
             cmd.CommandType = System.Data.CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@cedula", usuario.cedula);
-            try
-            {
-                cmd.ExecuteNonQuery();
-                Debug.WriteLine("Profesor creado exitosamente");
-            }
-            catch
-            {
-                Debug.WriteLine("Error al agregar profesor");
-            }
+            cmd.ExecuteNonQuery();
             conn.Close();
         }
 
@@ -154,19 +133,59 @@ namespace XTecDigital_Server.Controllers
             SqlCommand cmd = new SqlCommand(insertQuery, conn);
             cmd.CommandType = System.Data.CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@cedula", usuario.cedula);
-            try
-            {
-                cmd.ExecuteNonQuery();
-                Debug.WriteLine("Administrador creado exitosamente");
-            }
-            catch
-            {
-                Debug.WriteLine("Error al agregar administrador");
-            }
+            cmd.ExecuteNonQuery();
             conn.Close();
         }
 
+        [Route("asignarProfesorGrupo")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public void asignarProfesorGrupo(Usuario usuario)
+        {
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            string insertQuery = "asignarProfesorGrupo";
+            SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@codigoCurso", usuario.codigoCurso);
+            cmd.Parameters.AddWithValue("@numeroGrupo", usuario.numeroGrupo);
+            cmd.Parameters.AddWithValue("@cedulaProfesor", usuario.cedulaProfesor);
+            cmd.ExecuteNonQuery();
+            conn.Close();
+        }
 
+        [Route("eliminarProfesorGrupo")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public void eliminarProfesorGrupo(Usuario usuario)
+        {
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            string insertQuery = "eliminarProfesorGrupo";
+            SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@codigoCurso", usuario.codigoCurso);
+            cmd.Parameters.AddWithValue("@numeroGrupo", usuario.numeroGrupo);
+            cmd.Parameters.AddWithValue("@cedulaProfesor", usuario.cedulaProfesor);
+            cmd.ExecuteNonQuery();
+            conn.Close();
+        }
 
+        [Route("agregarEstudiantesGrupo")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public void agregarEstudiantesGrupo(Usuario usuario)
+        {
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            string insertQuery = "agregarEstudiantesGrupo";
+            SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@carnet", usuario.carnet);
+            cmd.Parameters.AddWithValue("@codigoCurso", usuario.codigoCurso);
+            cmd.Parameters.AddWithValue("@numeroGrupo", usuario.numeroGrupo);
+            cmd.ExecuteNonQuery();
+            conn.Close();
+        }
     }
 }
