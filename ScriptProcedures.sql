@@ -136,13 +136,13 @@ GO
 
 --Crear Evaluacion
 CREATE OR ALTER PROCEDURE crearEvaluacion @grupal int, @nombre varchar(30), @porcentaje decimal, @fechaInicio datetime, @fechaFin datetime,
-@archivo varbinary(MAX), @rubro varchar(20), @codigoCurso varchar(10), @numeroGrupo int
+@archivo varchar(MAX), @rubro varchar(20), @codigoCurso varchar(10), @numeroGrupo int
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
 	DECLARE @idRubro int = (select idRubro from Rubros where rubro = @rubro and idGrupo = @idGrupo);
 	insert into Evaluaciones (grupal, nombre, porcentaje, fechaInicio, fechaFin, archivo, idRubro)
-	values (@grupal, @nombre, @porcentaje, @fechaInicio, @fechaFin, @archivo, @idRubro);
+	values (@grupal, @nombre, @porcentaje, @fechaInicio, @fechaFin, Convert(varbinary(MAX), @archivo), @idRubro);
 END;
 GO
 
@@ -324,8 +324,6 @@ Go
 
 --*******************************PROFESOR******************************************
 
---Gestion de carpetas (visualizar, editar, agregar o eliminar carpetas en el grupo) * NO PUEDE ELIMINAR LAS CREADAS POR EL SEMESTRE
-
 --Ver las carpetas de un grupo
 CREATE OR ALTER PROCEDURE verCarpetasGrupo @codigoCurso varchar(30), @numeroGrupo int
 AS
@@ -365,7 +363,6 @@ BEGIN
 END;
 GO
 
-
 --Ver rubros de un grupo
 CREATE OR ALTER PROCEDURE verRubrosGrupo @codigoCurso varchar(10), @numeroGrupo int
 AS
@@ -374,6 +371,7 @@ BEGIN
 	select * from Rubros where idGrupo = @idGrupo;
 END;
 GO
+
 --Editar los rubros de un grupo
 CREATE OR ALTER PROCEDURE editarRubrosGrupo @codigoCurso varchar(10), @numeroGrupo int, @rubro varchar(20), @nuevoRubro varchar(20), @nuevoPorcentaje decimal
 AS
@@ -383,10 +381,11 @@ BEGIN
 END;
 GO
 
+--Verificar que los rubros de un grupo sumen 100 en total
 CREATE OR ALTER PROCEDURE verificarRubros @codigoCurso varchar(10), @numeroGrupo int
 AS
 BEGIN
-	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo );
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
 	DECLARE @total decimal = (Select SUM(porcentaje) from Rubros where idGrupo = @idGrupo);
 	If (@total != 100)
 	print (0)
@@ -397,7 +396,41 @@ BEGIN
 END;
 GO
 
---Gestion de evaluaciones (visualizar, editar, agregar o eliminar evaluaciones en el grupo)*SI ES GRUPAL DEBE ASIGNAR LOS GRUPOS DE TRABAJO
+--Gestion de evaluaciones (visualizar evaluaciones en el grupo)*SI ES GRUPAL DEBE ASIGNAR LOS GRUPOS DE TRABAJO
+--Editar evaluaciones de un grupo
+CREATE OR ALTER PROCEDURE editarEvaluacion @nombreEvaluacion varchar (20), @codigoCurso varchar(10), @numeroGrupo int, @rubro varchar(20), 
+@nuevoNombre varchar (20), @nuevaFechaInicio datetime, @nuevaFechaFin datetime, @nuevoPorcentaje decimal
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	DECLARE @idRubro int = (select idRubro from Rubros where idGrupo = @idGrupo and rubro = @rubro);
+	Update Evaluaciones set nombre = @nuevoNombre, fechaInicio = @nuevaFechaInicio, fechaFin = @nuevaFechaFin, porcentaje = @nuevoPorcentaje
+	where nombre = @nombreEvaluacion and idRubro = @idRubro;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE verEvaluacionesGrupo @codigoCurso varchar(10), @numeroGrupo int
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	Select e.nombre from Evaluaciones as e
+	inner join Rubros as r on e.idRubro = r.idRubro 
+	where r.idGrupo = @idGrupo;
+END;
+GO
+
+/*
+execute editarEvaluacion @nombreEvaluacion = 'evaluacion2', @codigoCurso = 'CE1010', @numeroGrupo = 8, @rubro = 'Quices',
+@nuevoNombre = 'evaluacion2', @nuevaFechaInicio = '2020-12-09 20:00:00' , @nuevaFechaFin = '2020-12-08 22:00:00', @nuevoporcentaje = 25.50
+*/
+/*
+execute crearEvaluacion @grupal = 0, @nombre = 'evaluacion2', @porcentaje = 20, @fechaInicio = '2020-12-08 21:28:00.000',
+@fechaFin = '2020-12-08 21:28:00.000', @archivo = 'pruebaaasdasdagda', @rubro = 'Quices', @codigoCurso = 'CE1010', @numeroGrupo = 8
+select * from Evaluaciones
+*/
+
+
+
 --Gestion de noticias (visualizar, crear, modificar y eliminar noticias)
 --Revisar las evaluaciones (descargar respuesta estudiante, subir comentario, poner nota, subir archivo retroalimentacion)
 --Guardar o publicar notas *TRIGGER QUE CREA UNA NOTICIA CUANDO SE PUBLICAN LAS NOTAS
@@ -456,6 +489,24 @@ BEGIN
 END;
 Go
 
+Create or Alter Trigger tr_ActualizarEvaluaciones on Evaluaciones
+for update
+As
+DECLARE @fechaFin datetime = (select fechaFin from inserted);
+DECLARE @fechaInicio datetime = (select fechaInicio from inserted);
+If Exists (select * from Evaluaciones as e join inserted as i on e.nombre = i.nombre and e.idRubro = i.idRubro having COUNT(*)>1)
+BEGIN
+	RAISERROR ('Ya existe una evaluacion con ese nombre en el grupo',16,1);
+	ROLLBACK TRANSACTION;
+	Return
+END;
+ELSE IF (@fechaFin <= @fechaInicio) 
+BEGIN
+	RAISERROR ('La fecha de finalizacion debe de ser despues de la fecha de inicio de la prueba',16,1);
+	ROLLBACK TRANSACTION;
+	Return
+END;
+Go
 
 --........................................................TRIGGERS........................................................
 
