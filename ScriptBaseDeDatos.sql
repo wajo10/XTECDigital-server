@@ -81,7 +81,7 @@ create table Documentos(
 	nombre varchar (30) not null,
 	archivo varbinary(max),
 	tipoArchivo varchar (10),
-	tamano decimal default 0,
+	tamano int default 0,
 	fechaSubido datetime default getDate(),
 	idCarpeta int not null,
 	primary key (idDocumento)

@@ -34,14 +34,6 @@ BEGIN
 END;
 GO
 
---Eliminar curso
-CREATE OR ALTER PROCEDURE eliminarCurso @Codigo varchar (10)
-AS
-BEGIN
-	DELETE FROM Curso where codigo = @Codigo;
-END;
-GO
-
 --Ver todos los cursos que hay en la base de datos
 CREATE OR ALTER PROCEDURE verCursos
 AS
@@ -97,7 +89,7 @@ GO
 
 
 --Crear Documentos
-CREATE OR ALTER PROCEDURE crearDocumentos @nombreDocumento varchar(30), @archivo varchar(MAX),@tamano decimal, @nombreCarpeta varchar(30), @idGrupo int, @tipoArchivo varchar (10)
+CREATE OR ALTER PROCEDURE crearDocumentos @nombreDocumento varchar(30), @archivo varchar(MAX),@tamano int, @nombreCarpeta varchar(30), @idGrupo int, @tipoArchivo varchar (10)
 AS
 BEGIN
 	Declare @idCarpeta int = (select idCarpeta from Carpetas where nombre = @nombreCarpeta and idGrupo = @idGrupo);
@@ -109,10 +101,13 @@ GO
 
 
 --Eliminar Documentos
-CREATE OR ALTER PROCEDURE eliminarDocumentos @nombre varchar(30), @nombreCarpeta varchar(30), @idGrupo int
+CREATE OR ALTER PROCEDURE eliminarDocumentos @nombreDocumento varchar(30), @nombreCarpeta varchar(30), @codigoCurso varchar(10), @numeroGrupo int
 AS
 BEGIN
-	delete from Documentos where idCarpeta = (select idCarpeta from Carpetas where nombre = @nombre) and nombre = @nombre;
+	Declare @idGrupo int = (select idGrupo from Grupo where numeroGrupo = @numeroGrupo and codigoCurso = @codigoCurso);
+	Declare @idCarpeta int = (select idCarpeta from Carpetas where nombre = @nombreCarpeta and idGrupo = @idGrupo);
+	delete from Documentos where idCarpeta = @idCarpeta and nombre = @nombreDocumento;
+	update Carpetas set tamano = (SELECT COUNT (*) from Documentos where idCarpeta = @idCarpeta) where idCarpeta = @idCarpeta;
 END;
 GO
 
@@ -363,6 +358,15 @@ BEGIN
 END;
 GO
 
+CREATE OR ALTER PROCEDURE verDocumentosEspecifico @nombreCarpeta varchar (20), @codigoCurso varchar (10), @numeroGrupo int, @nombreDocumento varchar(30)
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	DECLARE @idCarpeta int = (select idCarpeta from Carpetas where nombre = @nombreCarpeta and idGrupo = @idGrupo);
+	Select * from Documentos where idCarpeta = @idCarpeta and nombre = @nombreDocumento;
+END;
+GO
+
 --Ver rubros de un grupo
 CREATE OR ALTER PROCEDURE verRubrosGrupo @codigoCurso varchar(10), @numeroGrupo int
 AS
@@ -422,8 +426,9 @@ END;
 GO
 
 --Asignar grupos de trabajo
+/*
 CREATE OR ALTER PROCEDURE crearGrupoEvaluacion 
-
+*/
 
 /*
 execute verEvaluacionesPorRubro @codigoCurso = 'CE1010', @numeroGrupo = 8, @rubro = 'Quices'
