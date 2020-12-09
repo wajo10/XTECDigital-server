@@ -82,8 +82,9 @@ CREATE OR ALTER PROCEDURE eliminarCarpeta @nombre varchar(30), @codigoCurso varc
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	DECLARE @idCarpeta int = (select idCarpeta from Carpetas where nombre = @nombre and idGrupo = @idGrupo);
+	delete from Documentos where idCarpeta = @idCarpeta;
 	delete from Carpetas where nombre = @nombre and idGrupo = @idGrupo;
-	delete from Documentos where idCarpeta = (select idCarpeta from Carpetas where nombre = @nombre);
 END;
 GO
 
@@ -93,8 +94,8 @@ CREATE OR ALTER PROCEDURE crearDocumentos @nombreDocumento varchar(30), @archivo
 AS
 BEGIN
 	Declare @idCarpeta int = (select idCarpeta from Carpetas where nombre = @nombreCarpeta and idGrupo = @idGrupo);
-	Declare @cantDocu int = (select count(*) from Documentos where idCarpeta = @idCarpeta);
 	insert into Documentos(nombre, archivo, tamano, idCarpeta, tipoArchivo) values (@nombreDocumento, Convert(varbinary(MAX), @archivo), @tamano, @idCarpeta, @tipoArchivo);
+	Declare @cantDocu int = (select count(*) from Documentos where idCarpeta = @idCarpeta);
 	update Carpetas set tamano = @cantDocu where idCarpeta =@idCarpeta;
 END;
 GO
@@ -121,11 +122,15 @@ END;
 GO
 
 --Eliminar un rubro
-CREATE OR ALTER PROCEDURE eliminarRubro @rubro varchar(20), @porcentaje decimal, @codigoCurso varchar (30), @numeroGrupo int
+CREATE OR ALTER PROCEDURE eliminarRubro @rubro varchar(20), @codigoCurso varchar (30), @numeroGrupo int
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
-	delete from Rubros where rubro = @rubro and porcentaje = @porcentaje and idGrupo = @idGrupo;
+	DECLARE @idRubro int = (select idRubro from Rubros where rubro = @rubro and idGrupo = @idGrupo);
+	DECLARE @idEvaluacion int = (select idEvaluacion from Evaluaciones where idRubro = @idRubro);
+	delete from EvaluacionesEstudiantes where idEvaluacion = @idEvaluacion;
+	delete from Evaluaciones where idEvaluacion = @idEvaluacion;
+	delete from Rubros where idRubro = @idRubro;
 END;
 GO
 
@@ -392,11 +397,9 @@ BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
 	DECLARE @total decimal = (Select SUM(porcentaje) from Rubros where idGrupo = @idGrupo);
 	If (@total != 100)
-	print (0)
-	--return 0
+	return 0
 	Else
-	--return 1
-	print (1)
+	return 1
 END;
 GO
 
@@ -418,7 +421,7 @@ CREATE OR ALTER PROCEDURE verEvaluacionesPorRubro @codigoCurso varchar(10), @num
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
-	Select e.nombre nombreEvaluacion, e.porcentaje porcentajeEvaluacion, r.porcentaje porcentajeRubro, e.grupal, e.fechaInicio,
+	Select e.idEvaluacion, e.nombre nombreEvaluacion, e.porcentaje porcentajeEvaluacion, r.porcentaje porcentajeRubro, e.grupal, e.fechaInicio,
 	e.fechaFin, e.archivo from Evaluaciones as e
 	inner join Rubros as r on e.idRubro = r.idRubro 
 	where r.idGrupo = @idGrupo and rubro = @rubro;
@@ -426,9 +429,13 @@ END;
 GO
 
 --Asignar grupos de trabajo
-/*
-CREATE OR ALTER PROCEDURE crearGrupoEvaluacion 
-*/
+CREATE OR ALTER PROCEDURE agregarEstudianteEvaluacionGrupal @carnetEstudiante varchar (15), @idEvaluacion int, @numeroGrupoEvaluacion int
+AS
+BEGIN
+	insert into EvaluacionesEstudiantes (carnet, idEvaluacion, grupo) values (@carnetEstudiante, @idEvaluacion, @numeroGrupoEvaluacion)
+END;
+GO
+
 
 /*
 execute verEvaluacionesPorRubro @codigoCurso = 'CE1010', @numeroGrupo = 8, @rubro = 'Quices'
