@@ -100,16 +100,17 @@ create table Noticias(
 create table Rubros(
 	idRubro int identity (1,1),
 	rubro varchar (20),
-	porcentaje decimal,
+	porcentaje decimal(3,2),
 	idGrupo int,
 	primary key (idRubro)
 );
+
 
 create table Evaluaciones(
 	idEvaluacion int identity (1,1),
 	grupal bit default 0,
 	nombre varchar(20),
-	porcentaje decimal not null,
+	porcentaje decimal(3,2) not null,
 	fechaInicio datetime not null,
 	fechaFin dateTime not null,
 	archivo varbinary(max),
@@ -122,7 +123,7 @@ create table EvaluacionesEstudiantes (
 	carnet varchar(15) not null,
 	idEvaluacion int not null,
 	grupo int default 0,
-	nota decimal,
+	nota decimal(3,2),
 	comentario varchar (300),
 	archivoRetroalimentacion varbinary(max),
 	archivoSolucion varbinary(max),

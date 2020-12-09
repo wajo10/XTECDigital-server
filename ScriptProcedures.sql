@@ -344,9 +344,7 @@ BEGIN
 END;
 GO
 
-
---Gestion de documentos (visualizar, editar, agregar o eliminar documentos en el grupo)
-
+--Editar documentos (cambiar nombre)
 CREATE OR ALTER PROCEDURE editarDocumentos @nombreDocumento varchar (30), @nombreCarpeta varchar(30), @codigoCurso varchar (10), @numeroGrupo int,
 @nuevoNombre varchar(30)
 AS
@@ -357,8 +355,48 @@ BEGIN
 END;
 GO
 
+--Ver los documentos de un grupo de una carpeta especifica
+CREATE OR ALTER PROCEDURE verDocumentosGrupo @nombreCarpeta varchar (20), @codigoCurso varchar (10), @numeroGrupo int
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo );
+	DECLARE @idCarpeta int = (select idCarpeta from Carpetas where nombre = @nombreCarpeta and idGrupo = @idGrupo);
+	Select * from Documentos where idCarpeta = @idCarpeta
+END;
+GO
 
---Gestion de rubros (visualizar, editar, agregar o eliminar rubros en el grupo) *LA SUMA DE TODOS DEBE DAR 100%
+
+--Ver rubros de un grupo
+CREATE OR ALTER PROCEDURE verRubrosGrupo @codigoCurso varchar(10), @numeroGrupo int
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo );
+	select * from Rubros where idGrupo = @idGrupo;
+END;
+GO
+--Editar los rubros de un grupo
+CREATE OR ALTER PROCEDURE editarRubrosGrupo @codigoCurso varchar(10), @numeroGrupo int, @rubro varchar(20), @nuevoRubro varchar(20), @nuevoPorcentaje decimal
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo );
+	Update Rubros set rubro = @nuevoRubro, porcentaje = @nuevoPorcentaje where idGrupo = @idGrupo and rubro = @rubro;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE verificarRubros @codigoCurso varchar(10), @numeroGrupo int
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo );
+	DECLARE @total decimal = (Select SUM(porcentaje) from Rubros where idGrupo = @idGrupo);
+	If (@total != 100)
+	print (0)
+	--return 0
+	Else
+	--return 1
+	print (1)
+END;
+GO
+
 --Gestion de evaluaciones (visualizar, editar, agregar o eliminar evaluaciones en el grupo)*SI ES GRUPAL DEBE ASIGNAR LOS GRUPOS DE TRABAJO
 --Gestion de noticias (visualizar, crear, modificar y eliminar noticias)
 --Revisar las evaluaciones (descargar respuesta estudiante, subir comentario, poner nota, subir archivo retroalimentacion)
@@ -393,6 +431,26 @@ As
 If Exists (select * from Documentos as d join inserted as i on d.nombre = i.nombre and d.idCarpeta = i.idCarpeta having COUNT(*)>1)
 BEGIN
 	RAISERROR ('Ya existe un documento con ese nombre en el grupo',16,1);
+	ROLLBACK TRANSACTION;
+	Return
+END;
+Go
+
+Create or Alter Trigger tr_ActualizarRubros on Rubros
+for update
+As
+DECLARE @nombRubro varchar (20) = (select rubro from deleted);
+DECLARE @nombNuev varchar (20) = (select rubro from inserted);
+If Exists (select * from Rubros as r join inserted as i on r.rubro = i.rubro and r.idGrupo = i.idGrupo having COUNT(*)>1)
+BEGIN
+	RAISERROR ('Ya existe un rubro con ese nombre en el grupo',16,1);
+	ROLLBACK TRANSACTION;
+	Return
+END;
+ELSE IF ((@nombRubro = 'Quices' and @nombNuev != 'Quices') or (@nombRubro = 'Examenes' and @nombNuev != 'Examenes') 
+or (@nombRubro = 'Proyectos' and @nombNuev != 'Proyectos'))
+BEGIN
+	RAISERROR ('No se puede cambiar el nombre de los rubros principales, solo su porcentaje',16,1);
 	ROLLBACK TRANSACTION;
 	Return
 END;
