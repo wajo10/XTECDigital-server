@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Data.SqlClient;
+using System.Diagnostics;
 
 namespace XTecDigital_Server.Models
 {
@@ -24,11 +25,32 @@ namespace XTecDigital_Server.Models
             List<Object> carpetas = new List<Object>();
             SqlConnection conn = new SqlConnection(serverKey);
             conn.Open();
-            string insertQuery = "verCarpetasGrupo";
-            SqlCommand cmd = new SqlCommand(insertQuery, conn);
-            cmd.CommandType = System.Data.CommandType.StoredProcedure;
-            cmd.Parameters.AddWithValue("@codigoCurso", args.Curso);
-            cmd.Parameters.AddWithValue("@numeroGrupo", args.Grupo);
+            SqlCommand cmd;
+            var type = "";
+            var isFile = false;
+            if (args.path == "/")
+            {
+                Debug.WriteLine("Inicial");
+                string insertQuery = "verCarpetasGrupo";
+                cmd = new SqlCommand(insertQuery, conn);
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@codigoCurso", args.Curso);
+                cmd.Parameters.AddWithValue("@numeroGrupo", args.Grupo);
+            }
+
+            else
+            {
+                Debug.WriteLine("Entra a carpeta");
+                args.path = args.path.Replace("/", "");
+                Debug.WriteLine(args.path);
+                string insertQuery = "verDocumentosGrupo";
+                cmd = new SqlCommand(insertQuery, conn);
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@nombreCarpeta", args.path);
+                cmd.Parameters.AddWithValue("@codigoCurso", args.Curso);
+                cmd.Parameters.AddWithValue("@numeroGrupo", args.Grupo);
+                isFile = true;
+            }
             SqlDataReader dr = cmd.ExecuteReader();
             var error = new { code = 0 , mesagge = " none" };
             var slash = '/';
@@ -36,17 +58,31 @@ namespace XTecDigital_Server.Models
             {
                 while (dr.Read())
                 {
+                    var dateCreated = new DateTime();
+                    var size = new decimal();
+                    if (args.path == "/")
+                    {
+                        dateCreated = (DateTime)dr[3];
+                        // size = (decimal)dr[2];
+                        size = 25;
+                    }
+                    else
+                    {
+                        dateCreated = (DateTime)dr[5];
+                        size = (decimal)dr[4];
+                        type = dr[3].ToString();
+                    }
 
                     var files = new[]
                     {
                         new {
                             name = dr[1].ToString(),
-                            dateCreated = (DateTime) dr[3],
-                            dateModified = (DateTime)dr[3],
-                            isFile = false,
-                            size = (int)dr[2],
+                            dateCreated = dateCreated,
+                            dateModified = dateCreated,
+                            isFile = isFile,
+                            size = size,
                             hasChild = false,
-                            type = "",
+                            type = type,
                             filterPath = slash
                         },
 
@@ -57,9 +93,10 @@ namespace XTecDigital_Server.Models
 
 
             }
-            catch
+            catch(ArgumentException e)
             {
                 error = new { code = 20, mesagge = "Error encontrando los archivos" };
+                Debug.WriteLine(e);
 
             }
 

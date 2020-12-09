@@ -80,11 +80,10 @@ GO
 CREATE OR ALTER PROCEDURE crearDocumentos @nombreDocumento varchar(30), @archivo varchar(MAX),@tamano decimal, @nombreCarpeta varchar(30), @idGrupo int, @tipoArchivo varchar (10)
 AS
 BEGIN
-	print @archivo;
 	Declare @idCarpeta int = (select idCarpeta from Carpetas where nombre = @nombreCarpeta and idGrupo = @idGrupo);
 	Declare @cantDocu int = (select count(*) from Documentos where idCarpeta = @idCarpeta);
 	insert into Documentos(nombre, archivo, tamano, idCarpeta, tipoArchivo) values (@nombreDocumento, Convert(varbinary(MAX), @archivo), @tamano, @idCarpeta, @tipoArchivo);
-	update Carpetas set tamano = @cantDocu;
+	update Carpetas set tamano = @cantDocu where idCarpeta =@idCarpeta;
 END;
 GO
 
@@ -346,3 +345,42 @@ GO
 --Enviar evaluaciones *CARGAR ARCHIVO, SI ES GRUPAL CON QUE UNO LO SUBA SE LE SUBE A TODOS LOS DEL GRUPO, PODER DESCARGAR EL ARCHIVO QUE SUBE EL ESTUDIANTE
 --Reporte de las notas del curso *SOLO PERMITE VISUALIZAR LA NOTA OBTENIDA POR EL ESTUDIANTE EN ESE GRUPO
 --Visualizar noticias *VER LA LISTA DE NOTICIAS DEL GRUPO ORDENADAS POR FECHA
+
+
+CREATE OR ALTER PROCEDURE editarCarpetaGrupo @nombreCarpeta varchar(30), @nuevoNombre varchar(30), @codigoCurso varchar(30), @numeroGrupo int
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	UPDATE Carpetas set nombre = @nuevoNombre where nombre = @nombreCarpeta and idGrupo = @idGrupo;
+END;
+GO
+
+--Editar documentos (cambiar nombre)
+CREATE OR ALTER PROCEDURE editarDocumentos @nombreDocumento varchar (30), @nombreCarpeta varchar(30), @codigoCurso varchar (10), @numeroGrupo int,
+@nuevoNombre varchar(30)
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo );
+	DECLARE @idCarpeta int = (select idCarpeta from Carpetas where nombre = @nombreCarpeta and idGrupo = @idGrupo);
+	Update Documentos set nombre = @nuevoNombre,  fechaSubido = getDate() where nombre = @nombreDocumento;
+END;
+GO
+
+--Ver los documentos de un grupo de una carpeta especifica
+CREATE OR ALTER PROCEDURE verDocumentosGrupo @nombreCarpeta varchar (20), @codigoCurso varchar (10), @numeroGrupo int
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo );
+	DECLARE @idCarpeta int = (select idCarpeta from Carpetas where nombre = @nombreCarpeta and idGrupo = @idGrupo);
+	Select * from Documentos where idCarpeta = @idCarpeta
+END;
+GO
+
+CREATE OR ALTER PROCEDURE verDocumentosEspecifico @nombreCarpeta varchar (20), @codigoCurso varchar (10), @numeroGrupo int, @nombreDocumento varchar(30)
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	DECLARE @idCarpeta int = (select idCarpeta from Carpetas where nombre = @nombreCarpeta and idGrupo = @idGrupo);
+	Select * from Documentos where idCarpeta = @idCarpeta and nombre = @nombreDocumento;
+END;
+GO
