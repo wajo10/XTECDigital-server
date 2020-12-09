@@ -396,7 +396,7 @@ BEGIN
 END;
 GO
 
---Gestion de evaluaciones (visualizar evaluaciones en el grupo)*SI ES GRUPAL DEBE ASIGNAR LOS GRUPOS DE TRABAJO
+--*SI ES GRUPAL DEBE ASIGNAR LOS GRUPOS DE TRABAJO
 --Editar evaluaciones de un grupo
 CREATE OR ALTER PROCEDURE editarEvaluacion @nombreEvaluacion varchar (20), @codigoCurso varchar(10), @numeroGrupo int, @rubro varchar(20), 
 @nuevoNombre varchar (20), @nuevaFechaInicio datetime, @nuevaFechaFin datetime, @nuevoPorcentaje decimal
@@ -409,26 +409,32 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE verEvaluacionesGrupo @codigoCurso varchar(10), @numeroGrupo int
+--Ver las evaluaciones de un grupo segun su rubro
+CREATE OR ALTER PROCEDURE verEvaluacionesPorRubro @codigoCurso varchar(10), @numeroGrupo int, @rubro varchar(20)
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
-	Select e.nombre from Evaluaciones as e
+	Select e.nombre nombreEvaluacion, e.porcentaje porcentajeEvaluacion, r.porcentaje porcentajeRubro, e.grupal, e.fechaInicio,
+	e.fechaFin, e.archivo from Evaluaciones as e
 	inner join Rubros as r on e.idRubro = r.idRubro 
-	where r.idGrupo = @idGrupo;
+	where r.idGrupo = @idGrupo and rubro = @rubro;
 END;
 GO
 
+--Asignar grupos de trabajo
+CREATE OR ALTER PROCEDURE crearGrupoEvaluacion 
+
+
 /*
+execute verEvaluacionesPorRubro @codigoCurso = 'CE1010', @numeroGrupo = 8, @rubro = 'Quices'
+
 execute editarEvaluacion @nombreEvaluacion = 'evaluacion2', @codigoCurso = 'CE1010', @numeroGrupo = 8, @rubro = 'Quices',
 @nuevoNombre = 'evaluacion2', @nuevaFechaInicio = '2020-12-09 20:00:00' , @nuevaFechaFin = '2020-12-08 22:00:00', @nuevoporcentaje = 25.50
-*/
-/*
-execute crearEvaluacion @grupal = 0, @nombre = 'evaluacion2', @porcentaje = 20, @fechaInicio = '2020-12-08 21:28:00.000',
-@fechaFin = '2020-12-08 21:28:00.000', @archivo = 'pruebaaasdasdagda', @rubro = 'Quices', @codigoCurso = 'CE1010', @numeroGrupo = 8
+
+execute crearEvaluacion @grupal = 0, @nombre = 'examenPrueba', @porcentaje = 20, @fechaInicio = '2020-12-08 21:28:00.000',
+@fechaFin = '2020-12-08 21:28:00.000', @archivo = 'pruebaaasdasdagda', @rubro = 'Examenes', @codigoCurso = 'CE1010', @numeroGrupo = 8
 select * from Evaluaciones
 */
-
 
 
 --Gestion de noticias (visualizar, crear, modificar y eliminar noticias)
