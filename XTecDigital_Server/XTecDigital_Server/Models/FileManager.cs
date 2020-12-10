@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Http;
 
 namespace XTecDigital_Server.Models
 {
@@ -14,6 +15,8 @@ namespace XTecDigital_Server.Models
         public int Grupo { get; set; }
         public string Curso { get; set; }
         public string Details { get; set; }
+        public string[] names { get; set; }
+        public IList<IFormFile> uploadFiles { get; set; }
         public string getString()
         {
             String str = "Action: "+ Action + " Path: " + path + " Grupo: " + Grupo.ToString() + " Curso: " + Curso;
