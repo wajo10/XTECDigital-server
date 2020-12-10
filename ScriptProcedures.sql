@@ -520,29 +520,37 @@ BEGIN
 END;
 GO
 
+
+--Trigger que valida que todas las notas de una evaluacion hayan sido asignadas anter de publicar la noticia
 CREATE OR ALTER TRIGGER tr_noticiaNotasPublicadas on Evaluaciones
 after update
 AS
 BEGIN
+	IF update (revisado)
 	DECLARE @idEvaluacion int = (select idEvaluacion from inserted);
 	DECLARE @cantidad int = (Select count (*) from EvaluacionesEstudiantes where nota is null and idEvaluacion = @idEvaluacion);
-	If (@cantidad = 0)
 	BEGIN
-		DECLARE @nombEv varchar (30) = (select nombre from inserted);
-		DECLARE @titNot varchar (30) = (select CONCAT ('Notas de ', @nombEv));
-		DECLARE @mensNot varchar (100) = (select CONCAT ('Las notas de la evaluacion ',@nombEv, ' ya se encuentran disponibles'));
-		DECLARE @idRubro int = (select idRubro from inserted);
-		DECLARE @idGrupo int = (select idGrupo from Rubros where idRubro = @idRubro);
-		DECLARE @codCurs varchar(30) = (select codigoCurso from Grupo where idGrupo = @idGrupo);
-		DECLARE @numGrup int = (select numeroGrupo from Grupo where idGrupo = @idGrupo);
-		Execute crearNoticiaGrupo @codigoCurso = @codCurs, @numeroGrupo = @numGrup, @tituloNoticia = @titNot, @mensaje = @mensNot;
+		IF (@cantidad = 0)
+		BEGIN
+			IF((select revisado from Evaluaciones where idEvaluacion = @idEvaluacion) = 1)
+			BEGIN
+				DECLARE @nombEv varchar (30) = (select nombre from inserted);
+				DECLARE @titNot varchar (30) = (select CONCAT ('Notas de ', @nombEv));
+				DECLARE @mensNot varchar (100) = (select CONCAT ('Las notas de la evaluacion ',@nombEv, ' ya se encuentran disponibles'));
+				DECLARE @idRubro int = (select idRubro from inserted);
+				DECLARE @idGrupo int = (select idGrupo from Rubros where idRubro = @idRubro);
+				DECLARE @codCurs varchar(30) = (select codigoCurso from Grupo where idGrupo = @idGrupo);
+				DECLARE @numGrup int = (select numeroGrupo from Grupo where idGrupo = @idGrupo);
+				Execute crearNoticiaGrupo @codigoCurso = @codCurs, @numeroGrupo = @numGrup, @tituloNoticia = @titNot, @mensaje = @mensNot;
+			END;
+		END;
+		Else if (@cantidad > 0)
+		BEGIN
+			RAISERROR ('No se pueden publicar las notas si faltan evaluaciones por calificar',16,1);
+			ROLLBACK TRANSACTION;
+			Return;
+		END;
 	END;
-	Else if (@cantidad > 0)
-	BEGIN
-		RAISERROR ('No se pueden publicar las notas si faltan evaluaciones por revisar',16,1);
-		ROLLBACK TRANSACTION;
-		Return;
-	END
 END;
 GO
 
