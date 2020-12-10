@@ -113,13 +113,14 @@ END;
 GO
 
 --Crear un rubro
-CREATE OR ALTER PROCEDURE crearRubro @rubro varchar(20), @porcentaje decimal, @codigoCurso varchar (30), @numeroGrupo int
+CREATE OR ALTER PROCEDURE crearRubro @rubro varchar(20), @porcentaje decimal(5,2), @codigoCurso varchar (30), @numeroGrupo int
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
 	insert into Rubros(rubro, porcentaje, idGrupo) values (@rubro, @porcentaje, @idGrupo);
 END;
 GO
+
 
 --Eliminar un rubro
 CREATE OR ALTER PROCEDURE eliminarRubro @rubro varchar(20), @codigoCurso varchar (30), @numeroGrupo int
@@ -135,7 +136,7 @@ END;
 GO
 
 --Crear Evaluacion
-CREATE OR ALTER PROCEDURE crearEvaluacion @grupal int, @nombre varchar(30), @porcentaje decimal, @fechaInicio datetime, @fechaFin datetime,
+CREATE OR ALTER PROCEDURE crearEvaluacion @grupal int, @nombre varchar(30), @porcentaje decimal(5,2), @fechaInicio datetime, @fechaFin datetime,
 @archivo varchar(MAX), @rubro varchar(20), @codigoCurso varchar(10), @numeroGrupo int
 AS
 BEGIN
@@ -382,7 +383,7 @@ END;
 GO
 
 --Editar los rubros de un grupo
-CREATE OR ALTER PROCEDURE editarRubrosGrupo @codigoCurso varchar(10), @numeroGrupo int, @rubro varchar(20), @nuevoRubro varchar(20), @nuevoPorcentaje decimal
+CREATE OR ALTER PROCEDURE editarRubrosGrupo @codigoCurso varchar(10), @numeroGrupo int, @rubro varchar(20), @nuevoRubro varchar(20), @nuevoPorcentaje decimal(5,2)
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo );
@@ -396,17 +397,23 @@ AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
 	DECLARE @total decimal = (Select SUM(porcentaje) from Rubros where idGrupo = @idGrupo);
+	Declare @existe int;
 	If (@total != 100)
-	return 0
+	set @existe = 0;
 	Else
-	return 1
+	set @existe = 1;
+	return @existe;
 END;
 GO
 
---*SI ES GRUPAL DEBE ASIGNAR LOS GRUPOS DE TRABAJO
+/*
+select * from Rubros
+execute verificarRubros @codigoCurso = 'CE1010', @numeroGrupo = 8;
+*/
+
 --Editar evaluaciones de un grupo
 CREATE OR ALTER PROCEDURE editarEvaluacion @nombreEvaluacion varchar (20), @codigoCurso varchar(10), @numeroGrupo int, @rubro varchar(20), 
-@nuevoNombre varchar (20), @nuevaFechaInicio datetime, @nuevaFechaFin datetime, @nuevoPorcentaje decimal
+@nuevoNombre varchar (20), @nuevaFechaInicio datetime, @nuevaFechaFin datetime, @nuevoPorcentaje decimal(5,2)
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
@@ -449,13 +456,82 @@ select * from Evaluaciones
 */
 
 
---Gestion de noticias (visualizar, crear, modificar y eliminar noticias)
+--Creacion de noticias
+CREATE OR ALTER PROCEDURE crearNoticiaGrupo @codigoCurso varchar (10), @numeroGrupo int, @tituloNoticia varchar(50), @mensaje varchar(300)
+AS
+BEGIN
+	Declare @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	insert into Noticias (titulo, mensaje, fecha, idGrupo) values (@tituloNoticia, @mensaje, getDate(), @idGrupo);
+END;
+GO
+
+--Eliminar noticia 
+CREATE OR ALTER PROCEDURE eliminarNoticia @codigoCurso varchar (10), @numeroGrupo int, @tituloNoticia varchar(50)
+AS
+BEGIN
+	Declare @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	delete from Noticias where idGrupo = @idGrupo and titulo = @tituloNoticia;
+END;
+GO
+
+--Modificar una noticia
+CREATE OR ALTER PROCEDURE editarNoticiaGrupo @codigoCurso varchar (10), @numeroGrupo int, @tituloNoticia varchar (50),
+@tituloNuevo varchar (50), @mensajeNuevo varchar(300)
+AS
+BEGIN
+	Declare @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	Update Noticias set titulo = @tituloNuevo, mensaje = @mensajeNuevo where idGrupo = @idGrupo and titulo = @tituloNoticia;
+END;
+GO
+
+--Ver las noticias de un grupo
+CREATE OR ALTER PROCEDURE verNoticiasGrupo @codigoCurso varchar(10), @numeroGrupo int
+AS
+BEGIN
+	Declare @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	Select * from Noticias where idGrupo = @idGrupo
+END;
+GO
+
+--Ver evaluaciones de los estudiantes
+CREATE OR ALTER PROCEDURE verEvaluacionesEstudiantes @idEvaluacion int
+AS
+BEGIN
+	select * from EvaluacionesEstudiantes where idEvaluacion = @idEvaluacion;
+END;
+GO
+
 --Revisar las evaluaciones (descargar respuesta estudiante, subir comentario, poner nota, subir archivo retroalimentacion)
+CREATE OR ALTER PROCEDURE revisarEvaluacion @carnet varchar(20), @idEvaluacion int, @nota decimal(5,2), @comentario varchar(200), 
+@archivoRetroalimentacion varchar(MAX)
+AS
+BEGIN
+	update EvaluacionesEstudiantes set nota = @nota, comentario = @comentario, archivoRetroalimentacion = Convert (varbinary(MAX), @archivoRetroalimentacion)
+	where carnet = @carnet and idEvaluacion = @idEvaluacion;
+END;
+GO
+
 --Guardar o publicar notas *TRIGGER QUE CREA UNA NOTICIA CUANDO SE PUBLICAN LAS NOTAS
 --Reporte de notas *VISTA QUE DETALLE TODAS LAS NOTAS Y CALCULE EL VALOR OBTENIDO PARA CADA RUBRO, ASÍ COMO LA NOTA FINAL CURSO Y CREAR PDF
 --Reporte de estudiantes *VISTA CON TODA LA INFORMACION DE LOS ESTUDIANTES DE UN GRUPO Y CREAR PDF
 
 --........................................................TRIGGERS........................................................
+--Asigna la misma calificacion a todos los miembros de una evaluacion grupal
+CREATE OR ALTER TRIGGER tr_calificacionGrupal on EvaluacionesEstudiantes
+for update
+AS
+BEGIN
+	if ((select grupo from inserted as i) != 0)
+	DECLARE @nota decimal (5,2) = (select nota from inserted);
+	update EvaluacionesEstudiantes set 
+	nota = (select nota from inserted),
+	comentario = (select comentario from inserted),
+	archivoRetroalimentacion = (select archivoRetroalimentacion from inserted)
+	where idEvaluacion = (select idEvaluacion from inserted) and grupo = (select grupo from inserted);
+END;
+GO
+
+
 --Valida que no se puedan modificar carpetas principales o que se trate de cambiar el nombre por una ya existente
 Create or Alter Trigger tr_ActualizarCarpetas on Carpetas
 for update
@@ -487,6 +563,7 @@ BEGIN
 END;
 Go
 
+--Valida el nombre que se quiere modificar
 Create or Alter Trigger tr_ActualizarRubros on Rubros
 for update
 As
@@ -507,6 +584,7 @@ BEGIN
 END;
 Go
 
+--Valida el nombre que se quiere modificar de la evaluacion
 Create or Alter Trigger tr_ActualizarEvaluaciones on Evaluaciones
 for update
 As
@@ -526,6 +604,29 @@ BEGIN
 END;
 Go
 
+--Verifica el titulo de la noticia
+CREATE OR ALTER TRIGGER tr_verificarNotica on Noticias
+for insert
+AS
+IF Exists (select * from Noticias as n join inserted as i on n.titulo = i.titulo and n.idGrupo = i.idGrupo having COUNT(*)>1)
+BEGIN
+	RAISERROR ('Ya existe una noticia con ese nombre en el grupo',16,1);
+	ROLLBACK TRANSACTION;
+	Return
+END;
+GO
+
+--Valida el nombre de la notica que se quiere modificar
+CREATE OR ALTER TRIGGER tr_modificarNotica on Noticias
+for update
+AS
+IF Exists (select * from Noticias as n join inserted as i on n.titulo = i.titulo and n.idGrupo = i.idGrupo having COUNT(*)>1)
+BEGIN
+	RAISERROR ('Ya existe una noticia con ese nombre en el grupo',16,1);
+	ROLLBACK TRANSACTION;
+	Return
+END;
+GO
 --........................................................TRIGGERS........................................................
 
 --*******************************PROFESOR******************************************

@@ -40,9 +40,25 @@ Execute asignarProfesorGrupo @codigoCurso = 'CE3101', @numeroGrupo = 1, @cedulaP
 
 --Asignacion de estudiantes a los grupos
 Execute agregarEstudiantesGrupo @carnet = '1010212', @codigoCurso = 'CE3101', @numeroGrupo = 1;
-Execute agregarEstudiantesGrupo @carnet = '14453544', @codigoCurso = 'CE3101', @numeroGrupo = 1;
-Execute agregarEstudiantesGrupo @carnet = '34312', @codigoCurso = 'CE3101', @numeroGrupo = 1;
-Execute agregarEstudiantesGrupo @carnet = '453343', @codigoCurso = 'CE3101', @numeroGrupo = 1;
+Execute agregarEstudiantesGrupo @carnet = '14453544', @codigoCurso = 'CE1010', @numeroGrupo = 8;
+Execute agregarEstudiantesGrupo @carnet = '34312', @codigoCurso = 'CE1010', @numeroGrupo = 8;
+Execute agregarEstudiantesGrupo @carnet = '453343', @codigoCurso = 'CE1010', @numeroGrupo = 8;
+
+--Creacion de una evaluacion grupal
+Execute crearEvaluacion @grupal = 1, @nombre = 'Evaluacion grupal', @porcentaje = 15, @fechaInicio = '2020-12-09 22:55:13.653', 
+@fechaFin = '2020-12-09 22:55:13.653', @archivo = 'archivo prueba', @rubro = 'Quices', @codigoCurso = 'CE1010', @numeroGrupo = 8;
+
+--Agregar estudiantes a una evaluacion grupal
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '14453544', @idEvaluacion = 6, @numeroGrupoEvaluacion = 1;
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '34312', @idEvaluacion = 6, @numeroGrupoEvaluacion = 1;
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '453343', @idEvaluacion = 6, @numeroGrupoEvaluacion = 1;
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '674536453', @idEvaluacion = 6, @numeroGrupoEvaluacion = 2;
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '645679896', @idEvaluacion = 6, @numeroGrupoEvaluacion = 2;
+
+--Revisar evaluacion grupal
+execute revisarEvaluacion @carnet = '674536453', @idEvaluacion = 6, @nota = 100, @comentario = 'excelente trabajo muchachos', 
+@archivoRetroalimentacion = 'archivo de prueba'
+
 
 /*
 select * from Evaluaciones
