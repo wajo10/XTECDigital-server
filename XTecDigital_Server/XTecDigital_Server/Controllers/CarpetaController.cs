@@ -20,7 +20,7 @@ namespace XTecDigital_Server.Controllers
         [Route("crearCarpeta")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
-        public void crearCarpeta(Carpeta semestre)
+        public Object crearCarpeta(Carpeta semestre)
         {
             SqlConnection conn = new SqlConnection(serverKey);
             conn.Open();
@@ -28,42 +28,86 @@ namespace XTecDigital_Server.Controllers
             SqlCommand cmd = new SqlCommand(insertQuery, conn);
             cmd.CommandType = System.Data.CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@nombre", semestre.nombre);
-            cmd.Parameters.AddWithValue("@idGrupo", semestre.idGrupo);
+            cmd.Parameters.AddWithValue("@codigoCurso", semestre.codigoCurso);
+            cmd.Parameters.AddWithValue("@numeroGrupo", semestre.numeroGrupo);
+            List<Object> respuesta = new List<Object>();
             try
             {
                 cmd.ExecuteNonQuery();
-                Debug.WriteLine("Carpeta creado exitosamente");
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
+
+                     };
+                respuesta.Add(response);
             }
-            catch
+            catch (Exception e)
             {
-                Debug.WriteLine("Error al crear carpeta");
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                respuesta.Add(response);
             }
             conn.Close();
+            return respuesta[0];
         }
 
 
-        [Route("eliminarCarpetaAdmin")]
+        [Route("eliminarCarpeta")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
-        public void eliminarCarpetaAdmin(Carpeta semestre)
+        public object eliminarCarpeta(Carpeta semestre)
         {
             SqlConnection conn = new SqlConnection(serverKey);
             conn.Open();
-            string insertQuery = "eliminarCarpetaAdmin";
+            string insertQuery = "eliminarCarpeta";
             SqlCommand cmd = new SqlCommand(insertQuery, conn);
             cmd.CommandType = System.Data.CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@nombre", semestre.nombre);
-            cmd.Parameters.AddWithValue("@idGrupo", semestre.idGrupo);
+            cmd.Parameters.AddWithValue("@codigoCurso", semestre.codigoCurso);
+            cmd.Parameters.AddWithValue("@numeroGrupo", semestre.numeroGrupo);
+            List<Object> respuesta = new List<Object>();
             try
             {
                 cmd.ExecuteNonQuery();
-                Debug.WriteLine("Carpeta eliminada exitosamente");
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
+
+                     };
+                respuesta.Add(response);
             }
-            catch
+            catch (Exception e)
             {
-                Debug.WriteLine("Error al eliminar carpeta");
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                respuesta.Add(response);
             }
             conn.Close();
+            return respuesta[0];
         }
     }
 }

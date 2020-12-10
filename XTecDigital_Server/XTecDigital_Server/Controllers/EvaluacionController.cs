@@ -10,6 +10,8 @@ using XTecDigital_Server.Models;
 
 namespace XTecDigital_Server.Controllers
 {
+    [ApiController]
+    [Route("[controller]")]
     public class EvaluacionController : Controller
     {
         private string serverKey = Startup.getKey();

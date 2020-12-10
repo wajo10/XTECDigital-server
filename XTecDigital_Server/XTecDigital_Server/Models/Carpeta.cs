@@ -15,5 +15,7 @@ namespace XTecDigital_Server.Models
         public int tamano { get; set; }
         public string fecha { get; set; }
         public int idGrupo { get; set; }
+        public string codigoCurso { get; set; }
+        public int numeroGrupo { get; set; }
     }
 }

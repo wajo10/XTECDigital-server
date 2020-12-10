@@ -21,7 +21,7 @@ namespace XTecDigital_Server.Controllers
         [Route("crearCurso")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
-        public void crearCurso(Curso curso)
+        public Object crearCurso(Curso curso)
         {
             SqlConnection conn = new SqlConnection(serverKey);
             conn.Open();
@@ -33,22 +33,43 @@ namespace XTecDigital_Server.Controllers
             cmd.Parameters.AddWithValue("@carrera", curso.carrera);
             cmd.Parameters.AddWithValue("@creditos", curso.creditos);
             cmd.Parameters.AddWithValue("@idSemestre", curso.idSemestre);
+            List<Object> respuesta = new List<Object>();
             try
             {
                 cmd.ExecuteNonQuery();
-                Debug.WriteLine("Curso creado exitosamente");
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
+
+                     };
+                respuesta.Add(response);
             }
-            catch
+            catch (Exception e)
             {
-                Debug.WriteLine("Error al crear curso");
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                respuesta.Add(response);
             }
             conn.Close();
+            return respuesta[0];
         }
 
         [Route("eliminarCurso")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
-        public void eliminarCurso(Curso curso)
+        public object eliminarCurso(Curso curso)
         {
             SqlConnection conn = new SqlConnection(serverKey);
             conn.Open();
@@ -56,16 +77,37 @@ namespace XTecDigital_Server.Controllers
             SqlCommand cmd = new SqlCommand(insertQuery, conn);
             cmd.CommandType = System.Data.CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@Codigo", curso.codigo);
+            List<Object> respuesta = new List<Object>();
             try
             {
                 cmd.ExecuteNonQuery();
-                Debug.WriteLine("Curso eliminado exitosamente");
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
+
+                     };
+                respuesta.Add(response);
             }
-            catch
+            catch (Exception e)
             {
-                Debug.WriteLine("Error al eliminar curso");
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                respuesta.Add(response);
             }
             conn.Close();
+            return respuesta[0];
         }
 
         [Route("verCursos")]

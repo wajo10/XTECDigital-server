@@ -15,6 +15,6 @@ namespace XTecDigital_Server.Models
         public float porcentaje { get; set; }
         public int idGrupo { get; set; }
         public string codigoCurso { get; set; }
-        public string numeroGrupo { get; set; }
+        public int numeroGrupo { get; set; }
     }
 }
