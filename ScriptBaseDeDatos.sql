@@ -87,7 +87,6 @@ create table Documentos(
 	primary key (idDocumento)
 );
 
-
 create table Noticias(
 	idNoticia int identity (1,1),
 	titulo varchar (30) not null,
@@ -113,9 +112,11 @@ create table Evaluaciones(
 	fechaInicio datetime not null,
 	fechaFin dateTime not null,
 	archivo varbinary(max),
+	revisado bit default 0,
 	idRubro int not null,
 	primary key (idEvaluacion)
 );
+
 
 create table EvaluacionesEstudiantes (
 	carnet varchar(15) not null,

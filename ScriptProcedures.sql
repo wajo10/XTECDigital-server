@@ -90,9 +90,11 @@ GO
 
 
 --Crear Documentos
-CREATE OR ALTER PROCEDURE crearDocumentos @nombreDocumento varchar(30), @archivo varchar(MAX),@tamano int, @nombreCarpeta varchar(30), @idGrupo int, @tipoArchivo varchar (10)
+CREATE OR ALTER PROCEDURE crearDocumentos @nombreDocumento varchar(30), @archivo varchar(MAX),@tamano int, @nombreCarpeta varchar(30),
+@codigoCurso varchar(10), @numeroGrupo int, @tipoArchivo varchar (10)
 AS
 BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
 	Declare @idCarpeta int = (select idCarpeta from Carpetas where nombre = @nombreCarpeta and idGrupo = @idGrupo);
 	insert into Documentos(nombre, archivo, tamano, idCarpeta, tipoArchivo) values (@nombreDocumento, Convert(varbinary(MAX), @archivo), @tamano, @idCarpeta, @tipoArchivo);
 	Declare @cantDocu int = (select count(*) from Documentos where idCarpeta = @idCarpeta);
@@ -501,7 +503,7 @@ BEGIN
 END;
 GO
 
---Revisar las evaluaciones (descargar respuesta estudiante, subir comentario, poner nota, subir archivo retroalimentacion)
+--Revisar las evaluaciones estudiante, subir comentario, poner nota, subir archivo retroalimentacion)
 CREATE OR ALTER PROCEDURE revisarEvaluacion @carnet varchar(20), @idEvaluacion int, @nota decimal(5,2), @comentario varchar(200), 
 @archivoRetroalimentacion varchar(MAX)
 AS
@@ -512,6 +514,38 @@ END;
 GO
 
 --Guardar o publicar notas *TRIGGER QUE CREA UNA NOTICIA CUANDO SE PUBLICAN LAS NOTAS
+CREATE OR ALTER PROCEDURE publicarNotas @idEvaluacion int AS
+BEGIN
+	update Evaluaciones set revisado = revisado ^ 1 where idEvaluacion = @idEvaluacion;
+END;
+GO
+
+CREATE OR ALTER TRIGGER tr_noticiaNotasPublicadas on Evaluaciones
+after update
+AS
+BEGIN
+	DECLARE @idEvaluacion int = (select idEvaluacion from inserted);
+	DECLARE @cantidad int = (Select count (*) from EvaluacionesEstudiantes where nota is null and idEvaluacion = @idEvaluacion);
+	If (@cantidad = 0)
+	BEGIN
+		DECLARE @nombEv varchar (30) = (select nombre from inserted);
+		DECLARE @titNot varchar (30) = (select CONCAT ('Notas de ', @nombEv));
+		DECLARE @mensNot varchar (100) = (select CONCAT ('Las notas de la evaluacion ',@nombEv, ' ya se encuentran disponibles'));
+		DECLARE @idRubro int = (select idRubro from inserted);
+		DECLARE @idGrupo int = (select idGrupo from Rubros where idRubro = @idRubro);
+		DECLARE @codCurs varchar(30) = (select codigoCurso from Grupo where idGrupo = @idGrupo);
+		DECLARE @numGrup int = (select numeroGrupo from Grupo where idGrupo = @idGrupo);
+		Execute crearNoticiaGrupo @codigoCurso = @codCurs, @numeroGrupo = @numGrup, @tituloNoticia = @titNot, @mensaje = @mensNot;
+	END;
+	Else if (@cantidad > 0)
+	BEGIN
+		RAISERROR ('No se pueden publicar las notas si faltan evaluaciones por revisar',16,1);
+		ROLLBACK TRANSACTION;
+		Return;
+	END
+END;
+GO
+
 --Reporte de notas *VISTA QUE DETALLE TODAS LAS NOTAS Y CALCULE EL VALOR OBTENIDO PARA CADA RUBRO, ASÍ COMO LA NOTA FINAL CURSO Y CREAR PDF
 --Reporte de estudiantes *VISTA CON TODA LA INFORMACION DE LOS ESTUDIANTES DE UN GRUPO Y CREAR PDF
 
