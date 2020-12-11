@@ -15,7 +15,7 @@ using XTecDigital_Server.Models;
 namespace XTecDigital_Server.Controllers
 {
     [Route("[controller]")]
-    [EnableCors("AllowAllOrigins")]
+   // [EnableCors("AllowAllOrigins")]
     [ApiController]
     public class DocumentosController : ControllerBase
     {
@@ -73,53 +73,75 @@ namespace XTecDigital_Server.Controllers
         [Route("Download")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
-        public IActionResult Descargar([FromForm] string downloadInput)
+        public Object Descargar([FromForm] string downloadInput)
         {
             Debug.WriteLine(downloadInput);
             Response.Headers.Add("Access-Control-Expose-Headers", "Content-Disposition");
             FileManager args = JsonConvert.DeserializeObject<FileManager>(downloadInput);
             args.path = args.path.Replace("/", "");
-
-            SqlConnection conn = new SqlConnection(serverKey);
-            conn.Open();
-            SqlCommand cmd;
-            string insertQuery = "verDocumentosEspecifico";
-            cmd = new SqlCommand(insertQuery, conn);
-            cmd.CommandType = System.Data.CommandType.StoredProcedure;
-            cmd.Parameters.AddWithValue("@nombreCarpeta", args.path);
-            cmd.Parameters.AddWithValue("@codigoCurso", args.Curso);
-            cmd.Parameters.AddWithValue("@numeroGrupo", args.Grupo);
-            cmd.Parameters.AddWithValue("@nombreDocumento",args.names[0]);
-            SqlDataReader dr = cmd.ExecuteReader();
-            var defaultAvatarAsBase64 = "";
-            var nombre = "";
-            while (dr.Read())
+            try
             {
-                defaultAvatarAsBase64 = dr[2].ToString();
-                nombre = dr[1].ToString() + "." + dr[3].ToString();
+                SqlConnection conn = new SqlConnection(serverKey);
+                conn.Open();
+                SqlCommand cmd;
+                string insertQuery = "verDocumentosEspecifico";
+                cmd = new SqlCommand(insertQuery, conn);
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@nombreCarpeta", args.path);
+                cmd.Parameters.AddWithValue("@codigoCurso", args.Curso);
+                cmd.Parameters.AddWithValue("@numeroGrupo", args.Grupo);
+                cmd.Parameters.AddWithValue("@nombreDocumento", args.names[0]);
+                SqlDataReader dr = cmd.ExecuteReader();
+                var defaultAvatarAsBase64 = "";
+                var nombre = "";
+                while (dr.Read())
+                {
+                    defaultAvatarAsBase64 = dr[2].ToString();
+                    nombre = dr[1].ToString() + "." + dr[3].ToString();
+                }
+                var imageStream = new MemoryStream();
+                // var bytes = Encoding.ASCII.GetBytes(defaultAvatarAsBase64);
+                var bytes = Convert.FromBase64String(defaultAvatarAsBase64);
+                imageStream = new MemoryStream(bytes);
+
+                var result = new FileStreamResult(imageStream, "APPLICATION/octet-stream");
+
+                result.FileDownloadName = nombre;
+                return result;
             }
-
-            Debug.WriteLine(defaultAvatarAsBase64.ToString());
-            var imageStream = new MemoryStream();
-            var bytes = Encoding.ASCII.GetBytes(defaultAvatarAsBase64);
-            imageStream = new MemoryStream(bytes);
-
-            var result = new FileStreamResult(imageStream, "APPLICATION/octet-stream");
-
-            result.FileDownloadName = nombre;
-
-            return result;
+            catch (Exception e)
+            {
+                Response.Clear();
+                Response.ContentType = "application/json; charset=utf-8";
+                Response.StatusCode = 400;
+                Response.Headers.Add("status", e.Message);
+            }
+            return Response;
         }
 
         [Route("Upload")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
-        public IActionResult Subir([FromBody] string uploadInput)
+        public IActionResult Subir([FromForm] string Curso, [FromForm] IList<IFormFile> uploadFiles, [FromForm] string action, [FromForm] string path, [FromForm] string Grupo)
         {
-            Debug.WriteLine(uploadInput);
-            Response.Headers.Add("Access-Control-Expose-Headers", "Content-Disposition");
-            FileManager args = JsonConvert.DeserializeObject<FileManager>(uploadInput);
-            args.path = args.path.Replace("/", "");
+            path = path.Replace("/", "");
+
+            Debug.WriteLine("Subir Archivo");
+            
+
+            var file = uploadFiles[0];
+            string filename = file.FileName;
+
+            var ms = new MemoryStream();
+            file.CopyTo(ms);
+            var fileBytes = ms.ToArray();
+            string s = Convert.ToBase64String(fileBytes);
+            string extension = Path.GetExtension(file.FileName);
+
+            Debug.WriteLine(path);
+            Debug.WriteLine(Curso);
+            Debug.WriteLine(filename);
+            Debug.WriteLine(extension);
 
             SqlConnection conn = new SqlConnection(serverKey);
             conn.Open();
@@ -127,12 +149,13 @@ namespace XTecDigital_Server.Controllers
             string insertQuery = "crearDocumentos";
             cmd = new SqlCommand(insertQuery, conn);
             cmd.CommandType = System.Data.CommandType.StoredProcedure;
-            cmd.Parameters.AddWithValue("@nombreDocumento", "prueba8");
-            cmd.Parameters.AddWithValue("@archivo", args.uploadFiles);
-            cmd.Parameters.AddWithValue("@tamano", 10.5);
-            cmd.Parameters.AddWithValue("@nombreCarpeta", args.path);
-            cmd.Parameters.AddWithValue("@idGrupo", 1);
-            cmd.Parameters.AddWithValue("@tipoArchivo", "pdf");
+            cmd.Parameters.AddWithValue("@nombreDocumento", filename);
+            cmd.Parameters.AddWithValue("@archivo", s);
+            cmd.Parameters.AddWithValue("@tamano", fileBytes.Length);
+            cmd.Parameters.AddWithValue("@nombreCarpeta", path);
+            cmd.Parameters.AddWithValue("@codigoCurso", Curso);
+            cmd.Parameters.AddWithValue("@numeroGrupo", Grupo);
+            cmd.Parameters.AddWithValue("@tipoArchivo", extension);
             SqlDataReader dr = cmd.ExecuteReader();
             var defaultAvatarAsBase64 = "";
             var nombre = "";
@@ -157,10 +180,11 @@ namespace XTecDigital_Server.Controllers
             {
                 case "read":
                     return args.read(serverKey);
-                    /*
+                    
                 case "delete":
                     // deletes the selected file(s) or folder(s) from the given path.
-                    return this.operation.ToCamelCase(this.operation.Delete(args.Path, args.Names));
+                    return args.delete(serverKey,Response);
+                    /*
                 case "copy":
                     // copies the selected file(s) or folder(s) from a path and then pastes them into a given target path.
                     return this.operation.ToCamelCase(this.operation.Copy(args.Path, args.TargetPath, args.Names, args.RenameFiles, args.TargetData));

@@ -72,7 +72,7 @@ namespace XTecDigital_Server.Models
                     else
                     {
                         dateCreated = (DateTime)dr[5];
-                        size = (decimal)dr[4];
+                        size = (int)dr[4];
                         type = dr[3].ToString();
                     }
 
@@ -133,6 +133,40 @@ namespace XTecDigital_Server.Models
                 details = args.Details
             };
             return jsonRet;
+        }
+
+        public object delete(String serverKey, HttpResponse Response)
+        {
+            Debug.WriteLine("Eliminar documento");
+            var args = this;
+            List<Object> carpetas = new List<Object>();
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            SqlCommand cmd;
+
+            try
+            {
+                Debug.WriteLine("Entra a carpeta");
+                args.path = args.path.Replace("/", "");
+                Debug.WriteLine(args.path);
+                string insertQuery = "eliminarDocumentos";
+                cmd = new SqlCommand(insertQuery, conn);
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@nombreDocumento", args.names[0]);
+                cmd.Parameters.AddWithValue("@nombreCarpeta", args.path);
+                cmd.Parameters.AddWithValue("@codigoCurso", args.Curso);
+                cmd.Parameters.AddWithValue("@numeroGrupo", args.Grupo);
+                cmd.ExecuteNonQuery();
+                Debug.WriteLine("Eliminado correctamente");
+                Debug.WriteLine(args.names[0]);
+                Debug.WriteLine(args.path);
+            }
+            catch(Exception e)
+            {
+               var error = new { code = 20, mesagge = e };
+                return error;
+            }
+            return 0;
         }
 
     }
