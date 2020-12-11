@@ -1,7 +1,5 @@
---Validar que al crear una evaluacion el rubro no exista ya en ese grupo y que los porcentajes de todas sumen 100
 --Validacion de profesores, administradores y estudiantes en el Log In
---Validar que al crear una carpeta no exista una carpeta con el mismo nombre en el mismo grupo.
---Validar que al crear un documento no exista una carpeta con el mismo nombre en el mismo grupo.
+
 
 CREATE OR ALTER PROCEDURE agregarProfesor @cedula int
 AS
@@ -25,7 +23,6 @@ End;
 Go
 
 --*******************************ADMINISTRADOR******************************************
-
 --Crear curso
 CREATE OR ALTER PROCEDURE crearCurso @Codigo varchar(10), @nombre varchar(50), @carrera varchar(50), @creditos int, @habilitado bit, @cedulaAdmin int
 AS
@@ -66,7 +63,7 @@ INSERT INTO Semestre (ano, periodo, cedulaAdmin) values (@ano, @periodo, @cedula
 End;
 Go
 
---Creacion de Documentos (Presentaciones, Quizes, Examenes, Proyectos) y Evaluaciones (Examenes 30%, Proyectos 40%, Quizes 30%) al crear el grupo
+
 --Crear carpetas
 CREATE OR ALTER PROCEDURE crearCarpeta @nombre varchar(50), @codigoCurso varchar(10), @numeroGrupo int
 AS
@@ -113,19 +110,6 @@ BEGIN
 END;
 GO
 
-/*
-execute crearDocumentos @nombreDocumento = 'documentoPrueba', @archivo = 'archivo prueba', @tamano = 1, 
-@nombreCarpeta = 'Presentaciones', @codigoCurso = 'CE3101', @numeroGrupo = 1, @tipoArchivo = '.txt'
-execute crearDocumentos @nombreDocumento = 'documento2', @archivo = 'archivo prueba', @tamano = 1, 
-@nombreCarpeta = 'Presentaciones', @codigoCurso = 'CE3101', @numeroGrupo = 1, @tipoArchivo = '.txt'
-
-execute eliminarDocumentos @nombreDocumento ='documentoPrueba', @nombreCarpeta = 'Presentaciones',
-@codigoCurso = 'CE3101', @numeroGrupo = 1
-
-select * from Documentos
-*/
-
-
 --Crear un rubro
 CREATE OR ALTER PROCEDURE crearRubro @rubro varchar(50), @porcentaje decimal(5,2), @codigoCurso varchar (30), @numeroGrupo int
 AS
@@ -134,7 +118,6 @@ BEGIN
 	insert into Rubros(rubro, porcentaje, idGrupo) values (@rubro, @porcentaje, @idGrupo);
 END;
 GO
-
 
 --Eliminar un rubro
 CREATE OR ALTER PROCEDURE eliminarRubro @rubro varchar(50), @codigoCurso varchar (30), @numeroGrupo int
@@ -187,7 +170,6 @@ BEGIN
 	Execute crearRubro @rubro = 'Proyectos', @porcentaje = 40, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
 END;
 GO
-
 
 --Establecer los profesores del grupo.
 CREATE OR ALTER PROCEDURE asignarProfesorGrupo @codigoCurso varchar(10), @numeroGrupo int, @cedulaProfesor int
@@ -433,10 +415,6 @@ BEGIN
 END;
 GO
 
-/*
-select * from Rubros
-execute verificarRubros @codigoCurso = 'CE1010', @numeroGrupo = 8;
-*/
 
 --Editar evaluaciones de un grupo
 CREATE OR ALTER PROCEDURE editarEvaluacion @nombreEvaluacion varchar (50), @codigoCurso varchar(10), @numeroGrupo int, @rubro varchar(50), 
@@ -469,19 +447,6 @@ BEGIN
 	insert into EvaluacionesEstudiantes (carnet, idEvaluacion, grupo) values (@carnetEstudiante, @idEvaluacion, @numeroGrupoEvaluacion)
 END;
 GO
-
-
-/*
-execute verEvaluacionesPorRubro @codigoCurso = 'CE1010', @numeroGrupo = 8, @rubro = 'Quices'
-
-execute editarEvaluacion @nombreEvaluacion = 'evaluacion2', @codigoCurso = 'CE1010', @numeroGrupo = 8, @rubro = 'Quices',
-@nuevoNombre = 'evaluacion2', @nuevaFechaInicio = '2020-12-09 20:00:00' , @nuevaFechaFin = '2020-12-08 22:00:00', @nuevoporcentaje = 25.50
-
-execute crearEvaluacion @grupal = 0, @nombre = 'examenPrueba', @porcentaje = 20, @fechaInicio = '2020-12-08 21:28:00.000',
-@fechaFin = '2020-12-08 21:28:00.000', @archivo = 'pruebaaasdasdagda', @rubro = 'Examenes', @codigoCurso = 'CE1010', @numeroGrupo = 8
-select * from Evaluaciones
-*/
-
 
 --Creacion de noticias
 CREATE OR ALTER PROCEDURE crearNoticiaGrupo @codigoCurso varchar (10), @numeroGrupo int, @tituloNoticia varchar(50), @mensaje varchar(300)
@@ -538,6 +503,26 @@ BEGIN
 END;
 GO
 
+--NECESITO UNIR ESTO CON LO DE FABIAN
+--Reporte de notas *VISTA QUE DETALLE TODAS LAS NOTAS Y CALCULE EL VALOR OBTENIDO PARA CADA RUBRO, ASÍ COMO LA NOTA FINAL CURSO Y CREAR PDF
+--Reporte de estudiantes *VISTA CON TODA LA INFORMACION DE LOS ESTUDIANTES DE UN GRUPO Y CREAR PDF
+
+--........................................................TRIGGERS........................................................
+--Asigna la misma calificacion a todos los miembros de una evaluacion grupal
+CREATE OR ALTER TRIGGER tr_calificacionGrupal on EvaluacionesEstudiantes
+for update
+AS
+BEGIN
+	if ((select grupo from inserted as i) != 0)
+	DECLARE @nota decimal (5,2) = (select nota from inserted);
+	update EvaluacionesEstudiantes set 
+	nota = (select nota from inserted),
+	comentario = (select comentario from inserted),
+	archivoRetroalimentacion = (select archivoRetroalimentacion from inserted)
+	where idEvaluacion = (select idEvaluacion from inserted) and grupo = (select grupo from inserted);
+END;
+GO
+
 --Guardar o publicar notas *TRIGGER QUE CREA UNA NOTICIA CUANDO SE PUBLICAN LAS NOTAS
 CREATE OR ALTER PROCEDURE publicarNotas @idEvaluacion int AS
 BEGIN
@@ -578,26 +563,6 @@ BEGIN
 	END;
 END;
 GO
-
---Reporte de notas *VISTA QUE DETALLE TODAS LAS NOTAS Y CALCULE EL VALOR OBTENIDO PARA CADA RUBRO, ASÍ COMO LA NOTA FINAL CURSO Y CREAR PDF
---Reporte de estudiantes *VISTA CON TODA LA INFORMACION DE LOS ESTUDIANTES DE UN GRUPO Y CREAR PDF
-
---........................................................TRIGGERS........................................................
---Asigna la misma calificacion a todos los miembros de una evaluacion grupal
-CREATE OR ALTER TRIGGER tr_calificacionGrupal on EvaluacionesEstudiantes
-for update
-AS
-BEGIN
-	if ((select grupo from inserted as i) != 0)
-	DECLARE @nota decimal (5,2) = (select nota from inserted);
-	update EvaluacionesEstudiantes set 
-	nota = (select nota from inserted),
-	comentario = (select comentario from inserted),
-	archivoRetroalimentacion = (select archivoRetroalimentacion from inserted)
-	where idEvaluacion = (select idEvaluacion from inserted) and grupo = (select grupo from inserted);
-END;
-GO
-
 
 --Valida que no se puedan modificar carpetas principales o que se trate de cambiar el nombre por una ya existente
 Create or Alter Trigger tr_ActualizarCarpetas on Carpetas
@@ -705,8 +670,18 @@ GO
 
 --********************************ESTUDIANTE***************************************************
 
---Ver los cursos a los que pertenece
+--Ver los cursos a los que pertenece 
+CREATE OR ALTER PROCEDURE verCursosEstudiante @carnet varchar(20)
+AS
+BEGIN
+	Select e.carnetEstudiante, g.idgrupo, c.nombre, c.carrera, c.creditos from Curso as c
+	inner join Grupo as g on g.codigoCurso = c.codigo
+	inner join EstudiantesGrupo as e on e.idGrupo = g.idGrupo where carnetEstudiante = @carnet;
+END;
+GO
+
 --Visualizar Carpetas del grupo
+
 --Ver archivos de las carpetas y poder descargarlos
 --Enviar evaluaciones *CARGAR ARCHIVO, SI ES GRUPAL CON QUE UNO LO SUBA SE LE SUBE A TODOS LOS DEL GRUPO, PODER DESCARGAR EL ARCHIVO QUE SUBE EL ESTUDIANTE
 --Reporte de las notas del curso *SOLO PERMITE VISUALIZAR LA NOTA OBTENIDA POR EL ESTUDIANTE EN ESE GRUPO
