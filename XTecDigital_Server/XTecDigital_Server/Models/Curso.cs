@@ -15,6 +15,8 @@ namespace XTecDigital_Server.Models
         public string carrera { get; set; }
         public int creditos { get; set; }
         public int idSemestre { get; set; }
+        public bool habilitado { get; set; }
+        public int cedulaAdmin { get; set; }
 
     }
 }

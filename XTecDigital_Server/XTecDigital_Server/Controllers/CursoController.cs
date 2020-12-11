@@ -32,7 +32,8 @@ namespace XTecDigital_Server.Controllers
             cmd.Parameters.AddWithValue("@nombre", curso.nombre);
             cmd.Parameters.AddWithValue("@carrera", curso.carrera);
             cmd.Parameters.AddWithValue("@creditos", curso.creditos);
-            cmd.Parameters.AddWithValue("@idSemestre", curso.idSemestre);
+            cmd.Parameters.AddWithValue("@habilitado", curso.habilitado);
+            cmd.Parameters.AddWithValue("@cedulaAdmin", curso.cedulaAdmin);
             List<Object> respuesta = new List<Object>();
             try
             {
@@ -124,9 +125,18 @@ namespace XTecDigital_Server.Controllers
             SqlCommand cmd = new SqlCommand(insertQuery, conn);
             cmd.CommandType = System.Data.CommandType.StoredProcedure;
             SqlDataReader    dr = cmd.ExecuteReader();
-
             try
             {
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
+
+                     };
+                cursos.Add(response);
                 while (dr.Read())
                 {
                     var jsons = new[]
@@ -136,7 +146,8 @@ namespace XTecDigital_Server.Controllers
                             nombre = dr[1].ToString(),
                             carrera = dr[2].ToString(),
                             creditos = (int)dr[3],
-                            idSemestre = (int)dr[4],
+                            habilitado = dr[4],
+                            idAdministrador = dr[5],
                         }
 
                      };
@@ -145,9 +156,19 @@ namespace XTecDigital_Server.Controllers
                 }
 
             }
-            catch
+            catch (Exception e)
             {
-                Debug.WriteLine("Usuario no encontrado");
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                cursos.Add(response);
 
             }
 

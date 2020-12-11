@@ -33,7 +33,7 @@ BEGIN
 	INSERT INTO Curso values (@Codigo, @nombre, @carrera, @creditos, @habilitado, @cedulaAdmin);
 END;
 GO
-
+Select * from Curso;
 --Eliminar curso
 CREATE OR ALTER PROCEDURE eliminarCurso @Codigo varchar (10)
 AS
