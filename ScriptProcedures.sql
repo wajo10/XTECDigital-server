@@ -27,7 +27,7 @@ Go
 --*******************************ADMINISTRADOR******************************************
 
 --Crear curso
-CREATE OR ALTER PROCEDURE crearCurso @Codigo varchar(10), @nombre varchar(30), @carrera varchar(30), @creditos int, @habilitado bit, @cedulaAdmin int
+CREATE OR ALTER PROCEDURE crearCurso @Codigo varchar(10), @nombre varchar(50), @carrera varchar(50), @creditos int, @habilitado bit, @cedulaAdmin int
 AS
 BEGIN
 	INSERT INTO Curso values (@Codigo, @nombre, @carrera, @creditos, @habilitado, @cedulaAdmin);
@@ -51,7 +51,7 @@ END;
 GO
 
 --Habilitar o deshabilitar un curso
-CREATE OR ALTER PROCEDURE habilitar_deshabilitarCurso @nombre varchar(30)
+CREATE OR ALTER PROCEDURE habilitar_deshabilitarCurso @nombre varchar(50)
 AS
 BEGIN
 	update Curso set habilitado = habilitado ^ 1 where nombre = @nombre;
@@ -68,7 +68,7 @@ Go
 
 --Creacion de Documentos (Presentaciones, Quizes, Examenes, Proyectos) y Evaluaciones (Examenes 30%, Proyectos 40%, Quizes 30%) al crear el grupo
 --Crear carpetas
-CREATE OR ALTER PROCEDURE crearCarpeta @nombre varchar(30), @codigoCurso varchar(10), @numeroGrupo int
+CREATE OR ALTER PROCEDURE crearCarpeta @nombre varchar(50), @codigoCurso varchar(10), @numeroGrupo int
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
@@ -78,7 +78,7 @@ GO
 
 
 --Eliminar carpetas
-CREATE OR ALTER PROCEDURE eliminarCarpeta @nombre varchar(30), @codigoCurso varchar(10), @numeroGrupo int
+CREATE OR ALTER PROCEDURE eliminarCarpeta @nombre varchar(50), @codigoCurso varchar(10), @numeroGrupo int
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
@@ -90,7 +90,7 @@ GO
 
 
 --Crear Documentos
-CREATE OR ALTER PROCEDURE crearDocumentos @nombreDocumento varchar(30), @archivo varchar(MAX),@tamano int, @nombreCarpeta varchar(30),
+CREATE OR ALTER PROCEDURE crearDocumentos @nombreDocumento varchar(50), @archivo varchar(MAX),@tamano int, @nombreCarpeta varchar(50),
 @codigoCurso varchar(10), @numeroGrupo int, @tipoArchivo varchar (10)
 AS
 BEGIN
@@ -102,9 +102,8 @@ BEGIN
 END;
 GO
 
-
 --Eliminar Documentos
-CREATE OR ALTER PROCEDURE eliminarDocumentos @nombreDocumento varchar(30), @nombreCarpeta varchar(30), @codigoCurso varchar(10), @numeroGrupo int
+CREATE OR ALTER PROCEDURE eliminarDocumentos @nombreDocumento varchar(50), @nombreCarpeta varchar(50), @codigoCurso varchar(10), @numeroGrupo int
 AS
 BEGIN
 	Declare @idGrupo int = (select idGrupo from Grupo where numeroGrupo = @numeroGrupo and codigoCurso = @codigoCurso);
@@ -114,8 +113,21 @@ BEGIN
 END;
 GO
 
+/*
+execute crearDocumentos @nombreDocumento = 'documentoPrueba', @archivo = 'archivo prueba', @tamano = 1, 
+@nombreCarpeta = 'Presentaciones', @codigoCurso = 'CE3101', @numeroGrupo = 1, @tipoArchivo = '.txt'
+execute crearDocumentos @nombreDocumento = 'documento2', @archivo = 'archivo prueba', @tamano = 1, 
+@nombreCarpeta = 'Presentaciones', @codigoCurso = 'CE3101', @numeroGrupo = 1, @tipoArchivo = '.txt'
+
+execute eliminarDocumentos @nombreDocumento ='documentoPrueba', @nombreCarpeta = 'Presentaciones',
+@codigoCurso = 'CE3101', @numeroGrupo = 1
+
+select * from Documentos
+*/
+
+
 --Crear un rubro
-CREATE OR ALTER PROCEDURE crearRubro @rubro varchar(20), @porcentaje decimal(5,2), @codigoCurso varchar (30), @numeroGrupo int
+CREATE OR ALTER PROCEDURE crearRubro @rubro varchar(50), @porcentaje decimal(5,2), @codigoCurso varchar (30), @numeroGrupo int
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
@@ -125,7 +137,7 @@ GO
 
 
 --Eliminar un rubro
-CREATE OR ALTER PROCEDURE eliminarRubro @rubro varchar(20), @codigoCurso varchar (30), @numeroGrupo int
+CREATE OR ALTER PROCEDURE eliminarRubro @rubro varchar(50), @codigoCurso varchar (30), @numeroGrupo int
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
@@ -138,8 +150,8 @@ END;
 GO
 
 --Crear Evaluacion
-CREATE OR ALTER PROCEDURE crearEvaluacion @grupal int, @nombre varchar(30), @porcentaje decimal(5,2), @fechaInicio datetime, @fechaFin datetime,
-@archivo varchar(MAX), @rubro varchar(20), @codigoCurso varchar(10), @numeroGrupo int
+CREATE OR ALTER PROCEDURE crearEvaluacion @grupal int, @nombre varchar(50), @porcentaje decimal(5,2), @fechaInicio datetime, @fechaFin datetime,
+@archivo varchar(MAX), @rubro varchar(50), @codigoCurso varchar(10), @numeroGrupo int
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
@@ -150,7 +162,7 @@ END;
 GO
 
 --Eliminar Evaluacion
-CREATE OR ALTER PROCEDURE eliminarEvaluacion @nombre varchar (30), @rubro varchar(50), @codigoCurso varchar(10), @numeroGrupo int
+CREATE OR ALTER PROCEDURE eliminarEvaluacion @nombre varchar (50), @rubro varchar(50), @codigoCurso varchar(10), @numeroGrupo int
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
@@ -309,7 +321,7 @@ Go
 Create or Alter Trigger tr_EliminarRubro on Rubros
 for delete
 As
-Declare @rubro varchar(30) = (select rubro from deleted);
+Declare @rubro varchar(50) = (select rubro from deleted);
 If (@rubro = 'Quices' or @rubro = 'Examenes' or @rubro = 'Proyectos')
 BEGIN
 	RAISERROR ('No se pueden eliminar los rubros principales',16,1);
@@ -322,7 +334,7 @@ Go
 Create or Alter Trigger tr_EliminarCarpetas on Carpetas
 for delete
 As
-Declare @nombreCarpeta varchar(30) = (select nombre from deleted);
+Declare @nombreCarpeta varchar(50) = (select nombre from deleted);
 If (@nombreCarpeta = 'Quices' or @nombreCarpeta = 'Examenes' or @nombreCarpeta = 'Proyectos' or @nombreCarpeta = 'Presentaciones')
 BEGIN
 	RAISERROR ('No se pueden eliminar las carpetas principales',16,1);
@@ -350,7 +362,7 @@ END;
 GO
 
 --Editar carpetas de un grupo
-CREATE OR ALTER PROCEDURE editarCarpetaGrupo @nombreCarpeta varchar(30), @nuevoNombre varchar(30), @codigoCurso varchar(30), @numeroGrupo int
+CREATE OR ALTER PROCEDURE editarCarpetaGrupo @nombreCarpeta varchar(50), @nuevoNombre varchar(50), @codigoCurso varchar(50), @numeroGrupo int
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
@@ -359,8 +371,8 @@ END;
 GO
 
 --Editar documentos (cambiar nombre)
-CREATE OR ALTER PROCEDURE editarDocumentos @nombreDocumento varchar (30), @nombreCarpeta varchar(30), @codigoCurso varchar (10), @numeroGrupo int,
-@nuevoNombre varchar(30)
+CREATE OR ALTER PROCEDURE editarDocumentos @nombreDocumento varchar (50), @nombreCarpeta varchar(50), @codigoCurso varchar (10), @numeroGrupo int,
+@nuevoNombre varchar(50)
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo );
@@ -370,7 +382,7 @@ END;
 GO
 
 --Ver los documentos de un grupo de una carpeta especifica
-CREATE OR ALTER PROCEDURE verDocumentosGrupo @nombreCarpeta varchar (20), @codigoCurso varchar (10), @numeroGrupo int
+CREATE OR ALTER PROCEDURE verDocumentosGrupo @nombreCarpeta varchar (50), @codigoCurso varchar (10), @numeroGrupo int
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo );
@@ -379,7 +391,7 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE verDocumentosEspecifico @nombreCarpeta varchar (20), @codigoCurso varchar (10), @numeroGrupo int, @nombreDocumento varchar(30)
+CREATE OR ALTER PROCEDURE verDocumentosEspecifico @nombreCarpeta varchar (50), @codigoCurso varchar (10), @numeroGrupo int, @nombreDocumento varchar(50)
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
@@ -398,7 +410,7 @@ END;
 GO
 
 --Editar los rubros de un grupo
-CREATE OR ALTER PROCEDURE editarRubrosGrupo @codigoCurso varchar(10), @numeroGrupo int, @rubro varchar(20), @nuevoRubro varchar(20), @nuevoPorcentaje decimal(5,2)
+CREATE OR ALTER PROCEDURE editarRubrosGrupo @codigoCurso varchar(10), @numeroGrupo int, @rubro varchar(50), @nuevoRubro varchar(50), @nuevoPorcentaje decimal(5,2)
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo );
@@ -427,8 +439,8 @@ execute verificarRubros @codigoCurso = 'CE1010', @numeroGrupo = 8;
 */
 
 --Editar evaluaciones de un grupo
-CREATE OR ALTER PROCEDURE editarEvaluacion @nombreEvaluacion varchar (20), @codigoCurso varchar(10), @numeroGrupo int, @rubro varchar(20), 
-@nuevoNombre varchar (20), @nuevaFechaInicio datetime, @nuevaFechaFin datetime, @nuevoPorcentaje decimal(5,2)
+CREATE OR ALTER PROCEDURE editarEvaluacion @nombreEvaluacion varchar (50), @codigoCurso varchar(10), @numeroGrupo int, @rubro varchar(50), 
+@nuevoNombre varchar (50), @nuevaFechaInicio datetime, @nuevaFechaFin datetime, @nuevoPorcentaje decimal(5,2)
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
@@ -439,7 +451,7 @@ END;
 GO
 
 --Ver las evaluaciones de un grupo segun su rubro
-CREATE OR ALTER PROCEDURE verEvaluacionesPorRubro @codigoCurso varchar(10), @numeroGrupo int, @rubro varchar(20)
+CREATE OR ALTER PROCEDURE verEvaluacionesPorRubro @codigoCurso varchar(10), @numeroGrupo int, @rubro varchar(50)
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
@@ -547,9 +559,9 @@ BEGIN
 		BEGIN
 			IF((select revisado from Evaluaciones where idEvaluacion = @idEvaluacion) = 1)
 			BEGIN
-				DECLARE @nombEv varchar (30) = (select nombre from inserted);
-				DECLARE @titNot varchar (30) = (select CONCAT ('Notas de ', @nombEv));
-				DECLARE @mensNot varchar (100) = (select CONCAT ('Las notas de la evaluacion ',@nombEv, ' ya se encuentran disponibles'));
+				DECLARE @nombEv varchar (50) = (select nombre from inserted);
+				DECLARE @titNot varchar (50) = (select CONCAT ('Notas de ', @nombEv));
+				DECLARE @mensNot varchar (200) = (select CONCAT ('Las notas de la evaluacion ',@nombEv, ' ya se encuentran disponibles'));
 				DECLARE @idRubro int = (select idRubro from inserted);
 				DECLARE @idGrupo int = (select idGrupo from Rubros where idRubro = @idRubro);
 				DECLARE @codCurs varchar(30) = (select codigoCurso from Grupo where idGrupo = @idGrupo);
@@ -591,18 +603,21 @@ GO
 Create or Alter Trigger tr_ActualizarCarpetas on Carpetas
 for update
 As
-Declare @nombreCarpeta varchar(30) = (select nombre from deleted);
-If (@nombreCarpeta = 'Quices' or @nombreCarpeta = 'Examenes' or @nombreCarpeta = 'Proyectos' or @nombreCarpeta = 'Presentaciones')
-BEGIN
-	RAISERROR ('No se pueden alterar las carpetas principales',16,1);
-	ROLLBACK TRANSACTION;
-	Return;
-END;
-Else if Exists (select * from Carpetas as c join inserted as i on c.nombre = i.nombre and c.idGrupo = i.idGrupo having COUNT(*)>1)
-BEGIN
-	RAISERROR ('Ya existe una carpeta con ese nombre en el grupo',16,1);
-	ROLLBACK TRANSACTION;
-	Return
+IF Update (nombre)
+	BEGIN
+	Declare @nombreCarpeta varchar(50) = (select nombre from deleted);
+	If (@nombreCarpeta = 'Quices' or @nombreCarpeta = 'Examenes' or @nombreCarpeta = 'Proyectos' or @nombreCarpeta = 'Presentaciones')
+	BEGIN
+		RAISERROR ('No se pueden alterar las carpetas principales',16,1);
+		ROLLBACK TRANSACTION;
+		Return;
+	END;
+	Else if Exists (select * from Carpetas as c join inserted as i on c.nombre = i.nombre and c.idGrupo = i.idGrupo having COUNT(*)>1)
+	BEGIN
+		RAISERROR ('Ya existe una carpeta con ese nombre en el grupo',16,1);
+		ROLLBACK TRANSACTION;
+		Return
+	END;
 END;
 Go
 
@@ -622,8 +637,8 @@ Go
 Create or Alter Trigger tr_ActualizarRubros on Rubros
 for update
 As
-DECLARE @nombRubro varchar (20) = (select rubro from deleted);
-DECLARE @nombNuev varchar (20) = (select rubro from inserted);
+DECLARE @nombRubro varchar (50) = (select rubro from deleted);
+DECLARE @nombNuev varchar (50) = (select rubro from inserted);
 If Exists (select * from Rubros as r join inserted as i on r.rubro = i.rubro and r.idGrupo = i.idGrupo having COUNT(*)>1)
 BEGIN
 	RAISERROR ('Ya existe un rubro con ese nombre en el grupo',16,1);

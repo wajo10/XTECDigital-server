@@ -68,18 +68,19 @@ create table EstudiantesGrupo(
 
 create table Carpetas(
 	idCarpeta int identity(1,1),
-	nombre varchar(30) not null,
+	nombre varchar(50) not null,
 	tamano int default 0,
 	fecha datetime default getDate(),
 	idGrupo int not null,
 	primary key (idCarpeta)
 );
 
+
 create table Documentos(
 	idDocumento int identity(1,1),
-	nombre varchar (30) not null,
+	nombre varchar (50) not null,
 	archivo varchar(max),
-	tipoArchivo varchar (10),
+	tipoArchivo varchar (20),
 	tamano int default 0,
 	fechaSubido datetime default getDate(),
 	idCarpeta int not null,
@@ -89,25 +90,27 @@ create table Documentos(
 
 create table Noticias(
 	idNoticia int identity (1,1),
-	titulo varchar (30) not null,
+	titulo varchar (50) not null,
 	mensaje varchar (max) not null,
 	fecha datetime default getDate(),
 	idGrupo int not null,
 	primary key (idNoticia)
 );
 
+
 create table Rubros(
 	idRubro int identity (1,1),
-	rubro varchar (20),
+	rubro varchar (50),
 	porcentaje decimal(5,2),
 	idGrupo int,
 	primary key (idRubro)
 );
 
+
 create table Evaluaciones(
 	idEvaluacion int identity (1,1),
 	grupal bit default 0,
-	nombre varchar(20),
+	nombre varchar(50),
 	porcentaje decimal(5,2) not null,
 	fechaInicio datetime not null,
 	fechaFin dateTime not null,
@@ -128,7 +131,6 @@ create table EvaluacionesEstudiantes (
 	archivoSolucion varchar(max),
 	primary key (carnet, idEvaluacion)
 );
-
 
 --Modificaciones de tablas
 Alter table Semestre
