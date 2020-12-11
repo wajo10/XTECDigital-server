@@ -78,13 +78,14 @@ create table Carpetas(
 create table Documentos(
 	idDocumento int identity(1,1),
 	nombre varchar (30) not null,
-	archivo varbinary(max),
+	archivo varchar(max),
 	tipoArchivo varchar (10),
 	tamano int default 0,
 	fechaSubido datetime default getDate(),
 	idCarpeta int not null,
 	primary key (idDocumento)
 );
+
 
 create table Noticias(
 	idNoticia int identity (1,1),
@@ -110,7 +111,7 @@ create table Evaluaciones(
 	porcentaje decimal(5,2) not null,
 	fechaInicio datetime not null,
 	fechaFin dateTime not null,
-	archivo varbinary(max),
+	archivo varchar(max),
 	revisado bit default 0,
 	idRubro int not null,
 	primary key (idEvaluacion)
@@ -123,10 +124,11 @@ create table EvaluacionesEstudiantes (
 	grupo int default 0,
 	nota decimal(5,2),
 	comentario varchar (300),
-	archivoRetroalimentacion varbinary(max),
-	archivoSolucion varbinary(max),
+	archivoRetroalimentacion varchar(max),
+	archivoSolucion varchar(max),
 	primary key (carnet, idEvaluacion)
 );
+
 
 --Modificaciones de tablas
 Alter table Semestre

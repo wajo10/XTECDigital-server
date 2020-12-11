@@ -96,7 +96,7 @@ AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
 	Declare @idCarpeta int = (select idCarpeta from Carpetas where nombre = @nombreCarpeta and idGrupo = @idGrupo);
-	insert into Documentos(nombre, archivo, tamano, idCarpeta, tipoArchivo) values (@nombreDocumento, Convert(varbinary(MAX), @archivo), @tamano, @idCarpeta, @tipoArchivo);
+	insert into Documentos(nombre, archivo, tamano, idCarpeta, tipoArchivo) values (@nombreDocumento,  @archivo, @tamano, @idCarpeta, @tipoArchivo);
 	Declare @cantDocu int = (select count(*) from Documentos where idCarpeta = @idCarpeta);
 	update Carpetas set tamano = @cantDocu where idCarpeta =@idCarpeta;
 END;
@@ -145,7 +145,7 @@ BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
 	DECLARE @idRubro int = (select idRubro from Rubros where rubro = @rubro and idGrupo = @idGrupo);
 	insert into Evaluaciones (grupal, nombre, porcentaje, fechaInicio, fechaFin, archivo, idRubro)
-	values (@grupal, @nombre, @porcentaje, @fechaInicio, @fechaFin, Convert(varbinary(MAX), @archivo), @idRubro);
+	values (@grupal, @nombre, @porcentaje, @fechaInicio, @fechaFin,  @archivo, @idRubro);
 END;
 GO
 
@@ -243,6 +243,19 @@ BEGIN
 END;
 Go
 
+--Si la evaluacion creada no es grupal, se la asigna a todos los estudiantes de un grupo
+CREATE OR ALTER TRIGGER tr_asignarEvaluacionGrupo on Evaluaciones
+for insert
+As
+If (select grupal from inserted) = 0
+Begin
+	Declare @idEvaluacion int = (select idEvaluacion from inserted);
+	Declare @idRubro int = (select idRubro from inserted);
+	Declare @idGrupo int = (select idGrupo from Rubros where idRubro = @idRubro);
+	insert into EvaluacionesEstudiantes (carnet, idEvaluacion) 
+	values ((select carnetEstudiante from EstudiantesGrupo where idGrupo = @idGrupo), @idEvaluacion);
+End;
+Go
 
 --Valida que la carpeta que se crea no exista en el mismo grupo
 Create or Alter Trigger tr_verificarCarpeta on Carpetas
@@ -508,7 +521,7 @@ CREATE OR ALTER PROCEDURE revisarEvaluacion @carnet varchar(20), @idEvaluacion i
 @archivoRetroalimentacion varchar(MAX)
 AS
 BEGIN
-	update EvaluacionesEstudiantes set nota = @nota, comentario = @comentario, archivoRetroalimentacion = Convert (varbinary(MAX), @archivoRetroalimentacion)
+	update EvaluacionesEstudiantes set nota = @nota, comentario = @comentario, archivoRetroalimentacion =  @archivoRetroalimentacion
 	where carnet = @carnet and idEvaluacion = @idEvaluacion;
 END;
 GO
