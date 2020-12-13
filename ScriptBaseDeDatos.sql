@@ -113,7 +113,7 @@ create table Evaluaciones(
 	porcentaje decimal(3,2) not null,
 	fechaInicio datetime not null,
 	fechaFin dateTime not null,
-	archivo varbinary(max),
+	archivo varchar(max),
 	idRubro int not null,
 	primary key (idEvaluacion)
 );

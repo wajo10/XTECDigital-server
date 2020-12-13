@@ -23,7 +23,7 @@ namespace XTecDigital_Server.Controllers
         [Route("crearSemestre")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
-        public void crearSemestre(Semestre semestre)
+        public object crearSemestre(Semestre semestre)
         {
             SqlConnection conn = new SqlConnection(serverKey);
             conn.Open();
@@ -33,16 +33,37 @@ namespace XTecDigital_Server.Controllers
             cmd.Parameters.AddWithValue("@ano", semestre.ano);
             cmd.Parameters.AddWithValue("@periodo", semestre.periodo);
             cmd.Parameters.AddWithValue("@cedulaAdmin", semestre.cedulaAdmin);
+            List<Object> respuesta = new List<Object>();
             try
             {
                 cmd.ExecuteNonQuery();
-                Debug.WriteLine("Semestre creado exitosamente");
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
+
+                     };
+                respuesta.Add(response);
             }
-            catch
+            catch (Exception e)
             {
-                Debug.WriteLine("Error al crear semestre");
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                respuesta.Add(response);
             }
             conn.Close();
+            return respuesta[0];
         }
 
 

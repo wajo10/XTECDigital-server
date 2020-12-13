@@ -19,7 +19,7 @@ namespace XTecDigital_Server.Controllers
         [Route("crearEvaluacion")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
-        public void crearEvaluacion(Evaluacion evaluacion)
+        public object crearEvaluacion(Evaluacion evaluacion)
         {
             SqlConnection conn = new SqlConnection(serverKey);
             conn.Open();
@@ -31,15 +31,49 @@ namespace XTecDigital_Server.Controllers
             cmd.Parameters.AddWithValue("@porcentaje", evaluacion.porcentaje);
             cmd.Parameters.AddWithValue("@fechaInicio", evaluacion.fechaInicio);
             cmd.Parameters.AddWithValue("@fechaFin", evaluacion.fechaFin);
-            cmd.ExecuteNonQuery();
+            cmd.Parameters.AddWithValue("@archivo", evaluacion.archivo);
+            cmd.Parameters.AddWithValue("@rubro", evaluacion.rubro);
+            cmd.Parameters.AddWithValue("@codigoCurso", evaluacion.codigoCurso);
+            cmd.Parameters.AddWithValue("@numeroGrupo", evaluacion.numeroGrupo);
+            cmd.Parameters.AddWithValue("@idRubro", evaluacion.idRubro);
+            List<Object> respuesta = new List<Object>();
+            try
+            {
+                cmd.ExecuteNonQuery();
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
+
+                     };
+                respuesta.Add(response);
+            }
+            catch (Exception e)
+            {
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                respuesta.Add(response);
+            }
             conn.Close();
+            return respuesta[0];
         }
 
 
         [Route("eliminarEvaluacion")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
-        public void eliminarEvaluacion(Evaluacion evaluacion)
+        public object eliminarEvaluacion(Evaluacion evaluacion)
         {
             SqlConnection conn = new SqlConnection(serverKey);
             conn.Open();
@@ -50,8 +84,37 @@ namespace XTecDigital_Server.Controllers
             cmd.Parameters.AddWithValue("@rubro", evaluacion.rubro);
             cmd.Parameters.AddWithValue("@codigoCurso", evaluacion.codigoCurso);
             cmd.Parameters.AddWithValue("@numeroGrupo", evaluacion.numeroGrupo);
-            cmd.ExecuteNonQuery();
+            List<Object> respuesta = new List<Object>();
+            try
+            {
+                cmd.ExecuteNonQuery();
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
+
+                     };
+                respuesta.Add(response);
+            }
+            catch (Exception e)
+            {
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                respuesta.Add(response);
+            }
             conn.Close();
+            return respuesta[0];
         }
     }
 }
