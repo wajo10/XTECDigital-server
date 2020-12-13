@@ -22,6 +22,7 @@ INSERT INTO Administrador values (@cedula);
 End;
 Go
 
+
 --*******************************ADMINISTRADOR******************************************
 --Crear curso
 CREATE OR ALTER PROCEDURE crearCurso @Codigo varchar(10), @nombre varchar(50), @carrera varchar(50), @creditos int, @habilitado bit, @cedulaAdmin int
@@ -132,7 +133,7 @@ BEGIN
 END;
 GO
 
---Crear Evaluacion
+--Crear Evaluacion **ARREGLAR EL METODO PARA AGREGAR ESTUDIANTES CUANDO LA EVALUACION NO ES GRUPAL
 CREATE OR ALTER PROCEDURE crearEvaluacion @grupal int, @nombre varchar(50), @porcentaje decimal(5,2), @fechaInicio datetime, @fechaFin datetime,
 @archivo varchar(MAX), @rubro varchar(50), @codigoCurso varchar(10), @numeroGrupo int
 AS
@@ -212,6 +213,22 @@ BEGIN
 	Return
 END;
 Go
+
+--Valida que al crear una evaluacion no se le pueda asignar un porcentaje mayor al del rubro al que corresponde
+Create or Alter Trigger tr_verificarPorcentajeEvaluacion on Evaluaciones
+for insert
+AS
+BEGIN
+	DECLARE @porcEv decimal (5,2) = (select porcentaje from inserted);
+	DECLARE @porcRub decimal (5,2) = (select porcentaje from Rubros where idRubro = (select idRubro from inserted));
+	IF (@porcEv > @porcRub)
+		BEGIN
+		RAISERROR ('El porcentaje de la evaluacion no puede ser mayor al del rubro al que pertenece',16,1);
+		ROLLBACK TRANSACTION;
+		Return
+	END;
+END;
+GO
 
 --Valida que al crear un curso no exista ya
 Create or Alter Trigger tr_verificarCurso on Curso
@@ -476,15 +493,6 @@ BEGIN
 END;
 GO
 
---Ver las noticias de un grupo
-CREATE OR ALTER PROCEDURE verNoticiasGrupo @codigoCurso varchar(10), @numeroGrupo int
-AS
-BEGIN
-	Declare @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
-	Select * from Noticias where idGrupo = @idGrupo
-END;
-GO
-
 --Ver evaluaciones de los estudiantes
 CREATE OR ALTER PROCEDURE verEvaluacionesEstudiantes @idEvaluacion int
 AS
@@ -503,33 +511,54 @@ BEGIN
 END;
 GO
 
---NECESITO UNIR ESTO CON LO DE FABIAN
---Reporte de notas *VISTA QUE DETALLE TODAS LAS NOTAS Y CALCULE EL VALOR OBTENIDO PARA CADA RUBRO, ASÍ COMO LA NOTA FINAL CURSO Y CREAR PDF
---Reporte de estudiantes *VISTA CON TODA LA INFORMACION DE LOS ESTUDIANTES DE UN GRUPO Y CREAR PDF
-
---........................................................TRIGGERS........................................................
---Asigna la misma calificacion a todos los miembros de una evaluacion grupal
-CREATE OR ALTER TRIGGER tr_calificacionGrupal on EvaluacionesEstudiantes
-for update
-AS
-BEGIN
-	if ((select grupo from inserted as i) != 0)
-	DECLARE @nota decimal (5,2) = (select nota from inserted);
-	update EvaluacionesEstudiantes set 
-	nota = (select nota from inserted),
-	comentario = (select comentario from inserted),
-	archivoRetroalimentacion = (select archivoRetroalimentacion from inserted)
-	where idEvaluacion = (select idEvaluacion from inserted) and grupo = (select grupo from inserted);
-END;
-GO
-
---Guardar o publicar notas *TRIGGER QUE CREA UNA NOTICIA CUANDO SE PUBLICAN LAS NOTAS
+--Indica que las notas de una evaluacion ya fueron publicadas y crea una noticia por medio de un trigger
 CREATE OR ALTER PROCEDURE publicarNotas @idEvaluacion int AS
 BEGIN
 	update Evaluaciones set revisado = revisado ^ 1 where idEvaluacion = @idEvaluacion;
 END;
 GO
 
+--VIEW QUE PERMITE VISUALIZAR LAS NOTAS DE LOS ESTUDIANTES
+CREATE OR ALTER VIEW v_notasEstudiantes
+AS
+	SELECT g.idGrupo, ee.carnet, e.nombre nombreEvaluacion, r.rubro, ee.nota notaObtenida, ((ee.nota*e.porcentaje)/100) porcentajeObtenido,e.porcentaje porcentajeEvaluacion from EvaluacionesEstudiantes as ee
+	join Evaluaciones as e on ee.idEvaluacion = e.idEvaluacion
+	join Rubros as r on r.idRubro = e.idRubro
+	join Grupo as g on g.idGrupo = r.idGrupo;
+GO
+
+--Permite ver las notas de los estudiantes segun el grupo al que pertenezca
+CREATE OR ALTER PROCEDURE verNotasGrupo @codigoCurso varchar (15), @numeroGrupo int
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	select carnet, nombreEvaluacion, rubro, notaObtenida, porcentajeObtenido, porcentajeEvaluacion from v_notasEstudiantes 
+	where idGrupo = @idGrupo;
+END;
+GO
+
+--NECESITO UNIR ESTO CON LO DE FABIAN
+--Reporte de notas *VISTA QUE DETALLE TODAS LAS NOTAS Y CALCULE EL VALOR OBTENIDO PARA CADA RUBRO, ASÍ COMO LA NOTA FINAL CURSO Y CREAR PDF
+--Reporte de estudiantes *VISTA CON TODA LA INFORMACION DE LOS ESTUDIANTES DE UN GRUPO Y CREAR PDF
+
+--........................................................TRIGGERS........................................................
+--Asigna la misma calificacion a todos los miembros de una evaluacion grupal
+CREATE OR ALTER TRIGGER tr_modificacionGrupal on EvaluacionesEstudiantes
+for update
+AS
+BEGIN
+	IF ((select grupo from inserted as i) != 0)
+	BEGIN
+				DECLARE @nota decimal (5,2) = (select nota from inserted);
+				update EvaluacionesEstudiantes set 
+				nota = (select nota from inserted),
+				comentario = (select comentario from inserted),
+				archivoRetroalimentacion = (select archivoRetroalimentacion from inserted),
+				archivoSolucion = (select archivoSolucion from inserted)
+				where idEvaluacion = (select top(1) idEvaluacion from inserted) and grupo = (select grupo from inserted);
+	END;
+END;
+GO
 
 --Trigger que valida que todas las notas de una evaluacion hayan sido asignadas anter de publicar la noticia
 CREATE OR ALTER TRIGGER tr_noticiaNotasPublicadas on Evaluaciones
@@ -546,7 +575,7 @@ BEGIN
 			BEGIN
 				DECLARE @nombEv varchar (50) = (select nombre from inserted);
 				DECLARE @titNot varchar (50) = (select CONCAT ('Notas de ', @nombEv));
-				DECLARE @mensNot varchar (200) = (select CONCAT ('Las notas de la evaluacion ',@nombEv, ' ya se encuentran disponibles'));
+				DECLARE @mensNot varchar (200) = (select CONCAT ('Las notas de la evaluacion ', @nombEv, ' ya se encuentran disponibles'));
 				DECLARE @idRubro int = (select idRubro from inserted);
 				DECLARE @idGrupo int = (select idGrupo from Rubros where idRubro = @idRubro);
 				DECLARE @codCurs varchar(30) = (select codigoCurso from Grupo where idGrupo = @idGrupo);
@@ -680,9 +709,35 @@ BEGIN
 END;
 GO
 
---Visualizar Carpetas del grupo
+--Enviar evaluaciones
+CREATE OR ALTER PROCEDURE subirEvaluacion @archivo varchar(MAX), @idEvaluacion int, @carnet varchar(15)
+AS
+BEGIN
+	update EvaluacionesEstudiantes set archivoSolucion = @archivo where idEvaluacion = @idEvaluacion and carnet = @carnet;
+END;
+GO
 
---Ver archivos de las carpetas y poder descargarlos
---Enviar evaluaciones *CARGAR ARCHIVO, SI ES GRUPAL CON QUE UNO LO SUBA SE LE SUBE A TODOS LOS DEL GRUPO, PODER DESCARGAR EL ARCHIVO QUE SUBE EL ESTUDIANTE
---Reporte de las notas del curso *SOLO PERMITE VISUALIZAR LA NOTA OBTENIDA POR EL ESTUDIANTE EN ESE GRUPO
---Visualizar noticias *VER LA LISTA DE NOTICIAS DEL GRUPO ORDENADAS POR FECHA
+--Permite ver las notas de los estudiantes segun el grupo al que pertenezca
+CREATE OR ALTER PROCEDURE verNotasEstudianteGrupo @carnet varchar(15), @codigoCurso varchar (15), @numeroGrupo int
+AS
+BEGIN
+	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	select carnet, nombreEvaluacion, rubro, notaObtenida, porcentajeObtenido, porcentajeEvaluacion from v_notasEstudiantes 
+	where idGrupo = @idGrupo and carnet = @carnet;
+END;
+GO
+
+--Ver las noticias de un grupo ordenadas por fecha
+CREATE OR ALTER PROCEDURE verNoticiasGrupo @codigoCurso varchar(10), @numeroGrupo int
+AS
+BEGIN
+	Declare @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
+	Select * from Noticias where idGrupo = @idGrupo order by fecha desc;
+END;
+GO
+
+--........................................................TRIGGERS........................................................
+
+
+
+--........................................................TRIGGERS........................................................

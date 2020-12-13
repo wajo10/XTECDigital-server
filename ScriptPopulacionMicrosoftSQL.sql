@@ -58,6 +58,10 @@ Execute crearEvaluacion @grupal = 0, @nombre = 'Evaluacion trigger', @porcentaje
 @fechaFin = '2020-12-09 22:56:13.653', @archivo = 'archivo prueba', @rubro = 'Quices', @codigoCurso = 'CE1010', @numeroGrupo = 8;
 
 
+select * from Evaluaciones
+
+delete Evaluaciones where idEvaluacion = 8
+
 --Agregar estudiantes a una evaluacion grupal
 execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '14453544', @idEvaluacion = 6, @numeroGrupoEvaluacion = 1;
 execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '34312', @idEvaluacion = 6, @numeroGrupoEvaluacion = 1;
