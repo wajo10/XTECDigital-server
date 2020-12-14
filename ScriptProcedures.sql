@@ -32,7 +32,12 @@ Go
 CREATE OR ALTER PROCEDURE crearCurso @Codigo varchar(10), @nombre varchar(50), @carrera varchar(50), @creditos int, @habilitado bit, @cedulaAdmin int
 AS
 BEGIN
-	INSERT INTO Curso values (@Codigo, @nombre, @carrera, @creditos, @habilitado, @cedulaAdmin);
+	BEGIN TRY
+		INSERT INTO Curso values (@Codigo, @nombre, @carrera, @creditos, @habilitado, @cedulaAdmin);
+	END TRY
+	BEGIN CATCH
+		RAISERROR ('El curso que intenta agregar ya fue agregado previamente',16,1);
+	END CATCH
 END;
 GO
 
@@ -53,10 +58,31 @@ END;
 GO
 
 --Habilitar o deshabilitar un curso
-CREATE OR ALTER PROCEDURE habilitar_deshabilitarCurso @nombre varchar(50)
+CREATE OR ALTER PROCEDURE habilitar_deshabilitarCurso @codigo varchar(50)
 AS
 BEGIN
-	update Curso set habilitado = habilitado ^ 1 where nombre = @nombre;
+	update Curso set habilitado = habilitado ^ 1 where codigo = @codigo;
+	IF (select habilitado from Curso where codigo = @codigo) = 0
+	BEGIN
+		delete CursosPorSemestre where codigoCurso = @codigo;
+	END;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE agregarCursoSemestre @codigoCurso varchar (20), @anoSemestre int, @periodoSemestre varchar
+AS
+BEGIN
+	IF ((select habilitado from Curso where codigo = @codigoCurso) = 1)
+	BEGIN
+		DECLARE @idSem int = (select idSemestre from Semestre where ano = @anoSemestre and periodo = @periodoSemestre);
+		insert into CursosPorSemestre values (@idSem, @codigoCurso);
+	END;
+	Else if ((select habilitado from Curso where codigo = @codigoCurso) = 0)
+		Begin
+		RAISERROR ('El curso que desea agregar al semestre no se encuentra habilitado',16,1);
+	End;
+	Else
+	RAISERROR ('El curso que intenta agregar ya fue agregado previamente',16,1);
 END;
 GO
 
@@ -68,7 +94,6 @@ INSERT INTO Semestre (ano, periodo, cedulaAdmin) values (@ano, @periodo, @cedula
 End;
 Go
 
-
 --Crear carpetas
 CREATE OR ALTER PROCEDURE crearCarpeta @nombre varchar(50), @codigoCurso varchar(10), @numeroGrupo int
 AS
@@ -77,7 +102,6 @@ BEGIN
 	insert into Carpetas (nombre, idGrupo) values (@nombre, @idGrupo);
 END;
 GO
-
 
 --Eliminar carpetas
 CREATE OR ALTER PROCEDURE eliminarCarpeta @nombre varchar(50), @codigoCurso varchar(10), @numeroGrupo int
@@ -233,30 +257,6 @@ BEGIN
 	END;
 END;
 GO
-
---Valida que al crear un curso no exista ya
-Create or Alter Trigger tr_verificarCurso on Curso
-for Insert
-As
-IF Exists (select * from Curso as c join inserted as i on c.codigo = i.codigo having COUNT(*)>1)
-BEGIN
-	RAISERROR ('El curso que intenta crear ya existe en la base de datos.',16,1);
-	ROLLBACK TRANSACTION;
-	Return
-END;
-Go
-
---Valida que no se le agregue el mismo curso al mismo grupo
-Create or Alter Trigger tr_verificarGrupo on Grupo
-for Insert
-As
-IF Exists (select * from Grupo as g join inserted as i on g.codigoCurso = i.codigoCurso and g.numeroGrupo = i.numeroGrupo having COUNT(*)>1)
-BEGIN
-	RAISERROR ('El grupo que intenta crear ya existe en la base de datos.',16,1);
-	ROLLBACK TRANSACTION;
-	Return
-END;
-Go
 
 --Si la evaluacion creada no es grupal, se la asigna a todos los estudiantes de un grupo
 CREATE OR ALTER TRIGGER tr_asignarEvaluacionGrupo on Evaluaciones
@@ -747,13 +747,59 @@ GO
 --........................................................TRIGGERS........................................................
 
 --PROCEDURE PARA INICIALIZAR SEMESTRE EN BASE A LA TABLA DE EXCEL
---select * from Data$
---select * from Curso
 CREATE OR ALTER PROCEDURE crearSemestreExcel
 AS
 BEGIN
 	DECLARE @anio int = (select top 1 ano from Data$);
 	DECLARE @period int = (select top 1 Semestre from Data$);
+	--Crea el semestre
 	execute crearSemestre @ano = @anio, @periodo = @period, @cedulaAdmin = 0;
+
+	--Crea los cursos
+	insert into Curso (codigo, nombre) select idCurso, NombreCurso from Data$ where IdCurso != 'NULL' group by IdCurso, NombreCurso;
+
+	--Asigna los cursos al semestre
+	insert into CursosPorSemestre select s.idSemestre, c.codigo from Curso as c inner join Data$ as d on c.codigo = d.IdCurso
+										inner join Semestre as s on s.ano = d.Ano and s.periodo = d.Semestre
+										group by s.idSemestre, c.codigo;
+	--Crea los grupos
+	insert into Grupo select idCurso, Grupo from Data$ where IdCurso != 'NULL' group by idCurso, grupo;
+
+	
+	--Agrega a los profesores *FALTA LLAMAR EL METODO QUE LOS AGREGUE A LA BASE DE MONGO
+	insert into Profesor select idProfesor from Data$ where idProfesor != 'NULL' group by idProfesor;
+
+	--Agrega a los profesores a los grupos correspondientes
+	insert into ProfesoresGrupo select g.idGrupo, d.idProfesor from Data$ as d inner join Profesor as p on d.IdProfesor = p.cedula
+								inner join Grupo as g on g.codigoCurso = d.IdCurso and g.numeroGrupo = d.Grupo
+								group by d.IdProfesor, d.Grupo, g.idGrupo;
+	
+	--Agrega a los estudiantes *FALTA AGREGARLOS A LA BASE DE MONGO
+	insert into Estudiantes select carnet from Data$ where Carnet != 'NULL' group by Carnet;
+
+	--Agrega los estudiantes a los grupos correspondientes
+	insert into EstudiantesGrupo select d.Carnet, g.idGrupo from Estudiantes as e inner join Data$ as d on d.Carnet = e.carnet
+									inner join Grupo as g on g.codigoCurso = d.IdCurso and g.numeroGrupo = d.Grupo
+									group by d.carnet, g.idGrupo;
 END;
 GO
+
+
+--(@Codigo, @nombre, @carrera, @creditos, @habilitado, @cedulaAdmin); select * from grupo delete grupo
+/*
+
+select * from carpetas
+select * from Data$; select * from EstudiantesGrupo
+
+select idProfesor from Data$ where idProfesor != 'NULL' group by idProfesor
+
+select idCurso, Grupo from Data$ where IdCurso != 'NULL' group by idCurso, grupo;
+
+select idCurso, NombreCurso from Data$ where IdCurso != 'NULL' group by IdCurso, NombreCurso;
+
+select carnet, nombre, apellido1, apellido2 from Data$ where Carnet != 'Null' group by Carnet, Nombre, Apellido1, Apellido2 order by Nombre
+
+select d.idProfesor, g.idGrupo from Data$ as d inner join Profesor as p on d.IdProfesor = p.cedula
+inner join Grupo as g on g.codigoCurso = d.IdCurso and g.numeroGrupo = d.Grupo
+group by d.IdProfesor, d.Grupo, g.idGrupo;
+*/
