@@ -183,5 +183,20 @@ namespace XTecDigital_Server.Controllers
 
         }
 
+
+
+        [Route("reporteNotas")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public void reporteNotas(Curso curso)
+        {
+            // donde:   que hace                 -> que recibe
+            //Angular: Toco un boton como profe                                         boton en angular
+            //SQL: pedirReporteDeCarnetsPorCurso -> lista de carnets                    Procedure que mande carnets
+            //Mongo: Pedir la informacion con los carnets -> lista de estudiantes       Find en mongo
+            //SQL: mando los estudiantes y hago view -> recibo el view                  Procedure que genere View
+            //Angular: Recibo el Json con el view y muestro                             Monstrarlo grafico
+        }
+
     }
 }

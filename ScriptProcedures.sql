@@ -9,14 +9,13 @@ RAISERROR ('El profesor ya existe.',16,1);
 END CATCH
 Go
 
-
 CREATE OR ALTER PROCEDURE agregarEstudiante @carnet varchar(20)
 AS
 Begin TRY
 INSERT INTO Estudiantes values (@carnet);
 End TRY
 BEGIN CATCH  
-RAISERROR ('El profesor ya existe.',16,1);
+RAISERROR ('El Estudiante ya existe.',16,1);
 END CATCH
 Go
 
