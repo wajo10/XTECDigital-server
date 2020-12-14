@@ -3,7 +3,7 @@ Execute agregarProfesor @cedula = '1234';
 Execute agregarProfesor @cedula = '101013';
 Execute agregarProfesor @cedula = '798445';
 
-Execute agregarAdmin @cedula = '11111';
+Execute agregarAdmin @cedula = '0';
 Execute agregarAdmin @cedula = '222222';
 Execute agregarAdmin @cedula = '3333334';
 

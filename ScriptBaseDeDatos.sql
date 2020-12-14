@@ -18,15 +18,14 @@ create table Semestre (
 );
 
 create table Curso (
-	codigo varchar(10) not null,
+	codigo varchar(20) not null,
 	nombre varchar(50) not null unique,
-	carrera varchar(50) not null,
-	creditos int not null,
+	carrera varchar(50),
+	creditos int,
 	habilitado bit default 1,
-	idAdministrador varchar(20) not null,
+	idAdministrador varchar(20) default '0',
 	primary key (codigo)
 );
-
 
 create table CursosPorSemestre (
 	idSemestre int not null,
@@ -51,8 +50,10 @@ create table Grupo(
 	idGrupo int identity(1,1),
 	codigoCurso varchar (10) not null,
 	numeroGrupo int not null,
+	Unique (codigoCurso,numeroGrupo),
 	primary key (idGrupo)
 );
+
 
 create table ProfesoresGrupo (
 	idGrupo int not null,
