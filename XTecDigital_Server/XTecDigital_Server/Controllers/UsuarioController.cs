@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Cors;
 using MongoDB.Driver;
 using MongoDB.Bson;
 using System.Data.SqlClient;
+using System.Collections.Generic;
+using MongoDB.Bson.IO;
 
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -22,7 +24,7 @@ namespace XTecDigital_Server.Controllers
         [Route("validarUser")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
-        public Object validarUsuario(Usuario usuario)
+        public List<Object> validarUsuario(Usuario usuario)
         {
             var connectionString = "mongodb+srv://admin:admin@usuarios.ozlkz.mongodb.net/Usuarios?retryWrites=true&w=majority";
             var mongoClient = new MongoClient(connectionString);
@@ -32,21 +34,126 @@ namespace XTecDigital_Server.Controllers
             var filter2 = Builders<BsonDocument>.Filter.Eq("password", usuario.password);
             var projection = Builders<BsonDocument>.Projection.Exclude("_id");
             var document = collection.Find(filter1 & filter2).Project(projection).FirstOrDefault();
-            var jsons = new[]
+            List<Object> respuesta = new List<Object>();
+            if (document != null)
             {
-                new BsonDocument {{ "response", "false" }},
-                document
-            };
-            if (jsons[1] == null)
-            {
-                return jsons[0].ToString();
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        },
+                     };
+                var estudiante = new[]
+                        {
+                        new
+                        {
+                            carnet = document.GetValue("carnet").AsInt32,
+                            nombre = document.GetValue("nombre").AsString,
+                            email = document.GetValue("email").AsString,
+                            rol = document.GetValue("rol").AsString,
+                        },
+                     };
+                respuesta.Add(response);
+                respuesta.Add(estudiante);
+                return respuesta;
             }
             else
             {
-                return jsons[1].ToString();
+                return buscarProfesor(usuario);
+            }
+            
+        }
+
+        private List<Object> buscarProfesor(Usuario usuario)
+        {
+            var connectionString = "mongodb+srv://admin:admin@usuarios.ozlkz.mongodb.net/Usuarios?retryWrites=true&w=majority";
+            var mongoClient = new MongoClient(connectionString);
+            var dataBase = mongoClient.GetDatabase("Usuarios");
+            var collection = dataBase.GetCollection<BsonDocument>("profesores");
+            var filter1 = Builders<BsonDocument>.Filter.Eq("cedula", usuario.carnet);
+            var filter2 = Builders<BsonDocument>.Filter.Eq("password", usuario.password);
+            var projection = Builders<BsonDocument>.Projection.Exclude("_id");
+            var document = collection.Find(filter1 & filter2).Project(projection).FirstOrDefault();
+            List<Object> respuesta = new List<Object>();
+            if (document != null)
+            {
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        },
+                     };
+                var profesor = new[]
+                        {
+                        new
+                        {
+                            cedula = document.GetValue("cedula").AsInt32,
+                            nombre = document.GetValue("nombre").AsString,
+                            email = document.GetValue("email").AsString,
+                            rol = document.GetValue("rol").AsString,
+                        },
+                     };
+                respuesta.Add(response);
+                respuesta.Add(profesor);
+                return respuesta;
+            }
+            else
+            {
+                return buscarAdmin(usuario);
             }
         }
 
+        private List<object> buscarAdmin(Usuario usuario)
+        {
+            var connectionString = "mongodb+srv://admin:admin@usuarios.ozlkz.mongodb.net/Usuarios?retryWrites=true&w=majority";
+            var mongoClient = new MongoClient(connectionString);
+            var dataBase = mongoClient.GetDatabase("Usuarios");
+            var collection = dataBase.GetCollection<BsonDocument>("admin");
+            var filter1 = Builders<BsonDocument>.Filter.Eq("cedula", usuario.carnet);
+            var filter2 = Builders<BsonDocument>.Filter.Eq("password", usuario.password);
+            var projection = Builders<BsonDocument>.Projection.Exclude("_id");
+            var document = collection.Find(filter1 & filter2).Project(projection).FirstOrDefault();
+            List<Object> respuesta = new List<Object>();
+            if (document != null)
+            {
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        },
+                     };
+                var admin = new[]
+                        {
+                        new
+                        {
+                            cedula = document.GetValue("cedula").AsInt32,
+                            rol = document.GetValue("rol").AsString,
+                        },
+                     };
+                respuesta.Add(response);
+                respuesta.Add(admin);
+                return respuesta;
+            }
+            else
+            {
+                var response = new[]
+                   {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "No existe el usuario"
+                        },
+                     };
+                respuesta.Add(response);
+                return respuesta;
+            }
+        }
 
         [Route("agregarEstudiante")]
         [EnableCors("AnotherPolicy")]

@@ -5,9 +5,7 @@ function main(){
     estudiantes.main()    
     .then( function() {
         return profesores.main()
-    }).then( function() {
-        return SQL.main()
-    }) 
+    });
     
 }
 
