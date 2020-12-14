@@ -1,14 +1,13 @@
 --Validacion de profesores, administradores y estudiantes en el Log In
-
-
-CREATE OR ALTER PROCEDURE agregarProfesor @cedula int
+CREATE OR ALTER PROCEDURE agregarProfesor @cedula varchar(20)
 AS
 Begin
 INSERT INTO Profesor values (@cedula);
 End;
 Go
 
-CREATE OR ALTER PROCEDURE agregarEstudiante @carnet int
+
+CREATE OR ALTER PROCEDURE agregarEstudiante @carnet varchar(20)
 AS
 Begin
 INSERT INTO Estudiantes values (@carnet);
@@ -329,6 +328,7 @@ BEGIN
 END;
 Go
 
+
 --Valida que no se puedan eliminar las carpetas creadas al inicializar el semestre
 Create or Alter Trigger tr_EliminarCarpetas on Carpetas
 for delete
@@ -537,6 +537,7 @@ BEGIN
 END;
 GO
 
+
 --NECESITO UNIR ESTO CON LO DE FABIAN
 --Reporte de notas *VISTA QUE DETALLE TODAS LAS NOTAS Y CALCULE EL VALOR OBTENIDO PARA CADA RUBRO, ASÍ COMO LA NOTA FINAL CURSO Y CREAR PDF
 --Reporte de estudiantes *VISTA CON TODA LA INFORMACION DE LOS ESTUDIANTES DE UN GRUPO Y CREAR PDF
@@ -738,6 +739,16 @@ GO
 
 --........................................................TRIGGERS........................................................
 
-
-
 --........................................................TRIGGERS........................................................
+
+--PROCEDURE PARA INICIALIZAR SEMESTRE EN BASE A LA TABLA DE EXCEL
+--select * from Data$
+--select * from Curso
+CREATE OR ALTER PROCEDURE crearSemestreExcel
+AS
+BEGIN
+	DECLARE @anio int = (select top 1 ano from Data$);
+	DECLARE @period int = (select top 1 Semestre from Data$);
+	execute crearSemestre @ano = @anio, @periodo = @period, @cedulaAdmin = 0;
+END;
+GO
