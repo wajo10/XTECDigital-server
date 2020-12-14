@@ -4,7 +4,7 @@ module.exports.main = function mainEstudiantes(){
  
     var estudiantes = [
         {
-            "carnet":2018099536,
+            "carnet":"2018099536",
             "nombre":"Fabian Ramirez Arrieta",
             "email":"fabian03@estudiantec.cr",
             "telefono":"6062-5648",
@@ -12,7 +12,7 @@ module.exports.main = function mainEstudiantes(){
             "rol": "estudiante"
         },
         {
-            "carnet":2018086985,
+            "carnet":"2018086985",
             "nombre":"Mariana Vargas Ramirez",
             "email":"marianaVargas@estudiantec.cr",
             "telefono":"8461-7340",
@@ -20,7 +20,7 @@ module.exports.main = function mainEstudiantes(){
             "rol": "estudiante"
         },
         {
-            "carnet":2018319178,
+            "carnet":"2018319178",
             "nombre":"Mario Alexis Araya Chacón",
             "email":"mario@estudiantec.cr",
             "telefono":"8979-7226",
@@ -28,7 +28,7 @@ module.exports.main = function mainEstudiantes(){
             "rol": "estudiante"
         },
         {
-            "carnet":2018099304,
+            "carnet":"2018099304",
             "nombre":"Wajib Zaglul Chinchilla",
             "email":"wajo@estudiantec.cr",
             "telefono":"7076-2737",

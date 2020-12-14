@@ -18,7 +18,7 @@ create table Semestre (
 );
 
 create table Curso (
-	codigo varchar(10) not null,
+	codigo varchar(20) not null,
 	nombre varchar(50) not null unique,
 	carrera varchar(50) not null,
 	creditos int not null,

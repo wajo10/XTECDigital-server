@@ -4,28 +4,28 @@ module.exports.main = function mainProfesores(){
  
     var profesores = [
         {
-            "cedula": 411110,
+            "cedula": "411110",
             "nombre":"Fabian Ramirez Arrieta",
             "email":"fabian03@estudiantec.cr",
             "password":"1234",
             "rol": "profesores"
         },
         {
-            "cedula": 40348,
+            "cedula": "40348",
             "nombre":"Mariana Vargas Ramirez",
             "email":"marianaVargas@estudiantec.cr",
             "password":"1234",
             "rol": "profesores"
         },
         {
-            "cedula": 24713,
+            "cedula": "24713",
             "nombre":"Mario Alexis Araya Chacón",
             "email":"mario@estudiantec.cr",
             "password":"1234",
             "rol": "profesores"
         },
         {
-            "cedula": 27519,
+            "cedula": "27519",
             "nombre":"Wajib Zaglul Chinchilla",
             "email":"wajo@estudiantec.cr",
             "password":"1234",

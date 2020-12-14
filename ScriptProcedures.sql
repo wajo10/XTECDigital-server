@@ -1,20 +1,26 @@
 --Validacion de profesores, administradores y estudiantes en el Log In
 CREATE OR ALTER PROCEDURE agregarProfesor @cedula varchar(20)
 AS
-Begin
+Begin TRY
 INSERT INTO Profesor values (@cedula);
-End;
+End TRY
+BEGIN CATCH  
+RAISERROR ('El profesor ya existe.',16,1);
+END CATCH
 Go
 
 
 CREATE OR ALTER PROCEDURE agregarEstudiante @carnet varchar(20)
 AS
-Begin
+Begin TRY
 INSERT INTO Estudiantes values (@carnet);
-End;
+End TRY
+BEGIN CATCH  
+RAISERROR ('El profesor ya existe.',16,1);
+END CATCH
 Go
 
-CREATE OR ALTER PROCEDURE agregarAdmin @cedula int
+CREATE OR ALTER PROCEDURE agregarAdmin @cedula varchar(20)
 AS
 Begin
 INSERT INTO Administrador values (@cedula);

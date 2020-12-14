@@ -49,7 +49,7 @@ namespace XTecDigital_Server.Controllers
                         {
                         new
                         {
-                            carnet = document.GetValue("carnet").AsInt32,
+                            carnet = document.GetValue("carnet").AsString,
                             nombre = document.GetValue("nombre").AsString,
                             email = document.GetValue("email").AsString,
                             rol = document.GetValue("rol").AsString,
@@ -91,7 +91,7 @@ namespace XTecDigital_Server.Controllers
                         {
                         new
                         {
-                            cedula = document.GetValue("cedula").AsInt32,
+                            cedula = document.GetValue("cedula").AsString,
                             nombre = document.GetValue("nombre").AsString,
                             email = document.GetValue("email").AsString,
                             rol = document.GetValue("rol").AsString,
@@ -132,7 +132,7 @@ namespace XTecDigital_Server.Controllers
                         {
                         new
                         {
-                            cedula = document.GetValue("cedula").AsInt32,
+                            cedula = document.GetValue("cedula").AsString,
                             rol = document.GetValue("rol").AsString,
                         },
                      };
@@ -158,7 +158,7 @@ namespace XTecDigital_Server.Controllers
         [Route("agregarEstudiante")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
-        public void agregarEstudiante(Usuario usuario)
+        public object agregarEstudiante(Usuario usuario)
         {
             var connectionString = "mongodb+srv://admin:admin@usuarios.ozlkz.mongodb.net/Usuarios?retryWrites=true&w=majority";
             var mongoClient = new MongoClient(connectionString);
@@ -174,12 +174,13 @@ namespace XTecDigital_Server.Controllers
                 { "rol", usuario.rol },
             };
             collection.InsertOne(document);
+            return agregarEstudianteSQL(usuario);
         }
 
         [Route("agregarProfesor")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
-        public void agregarProfesor(Usuario usuario)
+        public object agregarProfesor(Usuario usuario)
         {
             var connectionString = "mongodb+srv://admin:admin@usuarios.ozlkz.mongodb.net/Usuarios?retryWrites=true&w=majority";
             var mongoClient = new MongoClient(connectionString);
@@ -187,7 +188,7 @@ namespace XTecDigital_Server.Controllers
             var collection = dataBase.GetCollection<BsonDocument>("profesores");
             var document = new BsonDocument
             {
-                { "carnet", usuario.carnet },
+                { "cedula", usuario.carnet },
                 { "nombre", usuario.nombre },
                 { "email", usuario.email },
                 { "telefono", usuario.telefono },
@@ -195,13 +196,32 @@ namespace XTecDigital_Server.Controllers
                 { "rol", usuario.rol },
             };
             collection.InsertOne(document);
+            return agregarProfesorSQL(usuario);
         }
-        
-        
+
+        [Route("agregarAdmin")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public object agregarAdmin(Usuario usuario)
+        {
+            var connectionString = "mongodb+srv://admin:admin@usuarios.ozlkz.mongodb.net/Usuarios?retryWrites=true&w=majority";
+            var mongoClient = new MongoClient(connectionString);
+            var dataBase = mongoClient.GetDatabase("Usuarios");
+            var collection = dataBase.GetCollection<BsonDocument>("admin");
+            var document = new BsonDocument
+            {
+                { "cedula", usuario.carnet },
+                { "rol", usuario.rol },
+            };
+            collection.InsertOne(document);
+            return agregarAdminSQL(usuario);
+        }
+
+
         [Route("agregarEstudianteSQL")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
-        public void agregarEstudianteSQL(Usuario usuario)
+        public object agregarEstudianteSQL(Usuario usuario)
         {
             SqlConnection conn = new SqlConnection(serverKey);
             conn.Open();
@@ -209,15 +229,44 @@ namespace XTecDigital_Server.Controllers
             SqlCommand cmd = new SqlCommand(insertQuery, conn);
             cmd.CommandType = System.Data.CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@carnet", usuario.carnet);
-            cmd.ExecuteNonQuery();
+            List<Object> respuesta = new List<Object>();
+            try
+            {
+                cmd.ExecuteNonQuery();
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
+
+                     };
+                respuesta.Add(response);
+            }
+            catch (Exception e)
+            {
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                respuesta.Add(response);
+            }
             conn.Close();
+            return respuesta[0];
         }
 
         
         [Route("agregarProfesorSQL")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
-        public void agregarProfesorSQL(Usuario usuario)
+        public object agregarProfesorSQL(Usuario usuario)
         {
             SqlConnection conn = new SqlConnection(serverKey);
             conn.Open();
@@ -225,14 +274,43 @@ namespace XTecDigital_Server.Controllers
             SqlCommand cmd = new SqlCommand(insertQuery, conn);
             cmd.CommandType = System.Data.CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@cedula", usuario.cedula);
-            cmd.ExecuteNonQuery();
+            List<Object> respuesta = new List<Object>();
+            try
+            {
+                cmd.ExecuteNonQuery();
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
+
+                     };
+                respuesta.Add(response);
+            }
+            catch (Exception e)
+            {
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                respuesta.Add(response);
+            }
             conn.Close();
+            return respuesta[0];
         }
 
         [Route("agregarAdminSQL")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
-        public void agregarAdminSQL(Usuario usuario)
+        public object agregarAdminSQL(Usuario usuario)
         {
             SqlConnection conn = new SqlConnection(serverKey);
             conn.Open();
@@ -240,8 +318,37 @@ namespace XTecDigital_Server.Controllers
             SqlCommand cmd = new SqlCommand(insertQuery, conn);
             cmd.CommandType = System.Data.CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@cedula", usuario.cedula);
-            cmd.ExecuteNonQuery();
+            List<Object> respuesta = new List<Object>();
+            try
+            {
+                cmd.ExecuteNonQuery();
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
+
+                     };
+                respuesta.Add(response);
+            }
+            catch (Exception e)
+            {
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                respuesta.Add(response);
+            }
             conn.Close();
+            return respuesta[0];
         }
 
         [Route("asignarProfesorGrupo")]
