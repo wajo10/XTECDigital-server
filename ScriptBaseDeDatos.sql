@@ -4,7 +4,7 @@
 
 --Creacion de las tablas de la base de datos
 create table Administrador (
-	cedula int,
+	cedula varchar(20),
 	primary key (cedula)
 );
 
@@ -13,10 +13,9 @@ create table Semestre (
 	idSemestre int identity(1,1),
 	ano int not null,
 	periodo varchar(1) not null,
-	cedulaAdmin int not null,
+	cedulaAdmin varchar(20) not null,
 	primary key (idSemestre)
 );
-
 
 create table Curso (
 	codigo varchar(10) not null,
@@ -24,14 +23,14 @@ create table Curso (
 	carrera varchar(50) not null,
 	creditos int not null,
 	habilitado bit default 1,
-	idAdministrador int not null,
+	idAdministrador varchar(20) not null,
 	primary key (codigo)
 );
 
 
 create table CursosPorSemestre (
 	idSemestre int not null,
-	codigoCurso varchar(10) not null,
+	codigoCurso varchar(20) not null,
 	primary key (idSemestre, codigoCurso)
 );
 
@@ -43,9 +42,10 @@ create table Estudiantes (
 
 
 create table Profesor(
-	cedula int,
+	cedula varchar(20),
 	primary key (cedula)
 );
+
 
 create table Grupo(
 	idGrupo int identity(1,1),
@@ -56,7 +56,7 @@ create table Grupo(
 
 create table ProfesoresGrupo (
 	idGrupo int not null,
-	cedulaProfesor int not null,
+	cedulaProfesor varchar(20) not null,
 	primary key (idGrupo, cedulaProfesor)
 );
 
@@ -132,6 +132,7 @@ create table EvaluacionesEstudiantes (
 	primary key (carnet, idEvaluacion)
 );
 
+
 --Modificaciones de tablas
 Alter table Semestre
 Add constraint FK_Admin
@@ -188,6 +189,8 @@ foreign key (idEvaluacion) references Evaluaciones (idEvaluacion);
 Alter table EvaluacionesEstudiantes
 Add constraint FK_idCarnetEvaluacion
 foreign key (carnet) references Estudiantes (carnet);
+
+
 
 
 
