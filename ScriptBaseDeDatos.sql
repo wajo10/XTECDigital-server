@@ -47,7 +47,6 @@ create table Profesor(
 	primary key (cedula)
 );
 
-
 create table Grupo(
 	idGrupo int identity(1,1),
 	codigoCurso varchar (10) not null,
@@ -69,19 +68,20 @@ create table EstudiantesGrupo(
 
 create table Carpetas(
 	idCarpeta int identity(1,1),
-	nombre varchar(30) not null,
+	nombre varchar(50) not null,
 	tamano int default 0,
 	fecha datetime default getDate(),
 	idGrupo int not null,
 	primary key (idCarpeta)
 );
 
+
 create table Documentos(
 	idDocumento int identity(1,1),
-	nombre varchar (30) not null,
-	archivo varbinary(max),
-	tipoArchivo varchar (10),
-	tamano decimal default 0,
+	nombre varchar (50) not null,
+	archivo varchar(max),
+	tipoArchivo varchar (20),
+	tamano int default 0,
 	fechaSubido datetime default getDate(),
 	idCarpeta int not null,
 	primary key (idDocumento)
@@ -90,17 +90,18 @@ create table Documentos(
 
 create table Noticias(
 	idNoticia int identity (1,1),
-	titulo varchar (30) not null,
+	titulo varchar (50) not null,
 	mensaje varchar (max) not null,
 	fecha datetime default getDate(),
 	idGrupo int not null,
 	primary key (idNoticia)
 );
 
+
 create table Rubros(
 	idRubro int identity (1,1),
-	rubro varchar (20),
-	porcentaje decimal(3,2),
+	rubro varchar (50),
+	porcentaje decimal(5,2),
 	idGrupo int,
 	primary key (idRubro)
 );
@@ -109,11 +110,12 @@ create table Rubros(
 create table Evaluaciones(
 	idEvaluacion int identity (1,1),
 	grupal bit default 0,
-	nombre varchar(20),
-	porcentaje decimal(3,2) not null,
+	nombre varchar(50),
+	porcentaje decimal(5,2) not null,
 	fechaInicio datetime not null,
 	fechaFin dateTime not null,
 	archivo varchar(max),
+	revisado bit default 0,
 	idRubro int not null,
 	primary key (idEvaluacion)
 );
@@ -123,10 +125,10 @@ create table EvaluacionesEstudiantes (
 	carnet varchar(15) not null,
 	idEvaluacion int not null,
 	grupo int default 0,
-	nota decimal(3,2),
+	nota decimal(5,2),
 	comentario varchar (300),
-	archivoRetroalimentacion varbinary(max),
-	archivoSolucion varbinary(max),
+	archivoRetroalimentacion varchar(max),
+	archivoSolucion varchar(max),
 	primary key (carnet, idEvaluacion)
 );
 
@@ -138,7 +140,6 @@ foreign key (cedulaAdmin) references Administrador (cedula);
 Alter table Curso
 Add constraint FK_IdAdministrador
 foreign key (idAdministrador) references Administrador (cedula);
-
 
 Alter table CursosPorSemestre
 Add constraint FK_idSemestrePorCurso
