@@ -72,9 +72,8 @@ namespace XTecDigital_Server.Controllers
             conn.Open();
             string insertQuery = "eliminarRubro";
             SqlCommand cmd = new SqlCommand(insertQuery, conn);
-            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            cmd.CommandType = CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@rubro", rubro.rubro);
-            cmd.Parameters.AddWithValue("@porcentaje", rubro.porcentaje);
             cmd.Parameters.AddWithValue("@codigoCurso", rubro.codigoCurso);
             cmd.Parameters.AddWithValue("@numeroGrupo", rubro.numeroGrupo);
             List<Object> respuesta = new List<Object>();

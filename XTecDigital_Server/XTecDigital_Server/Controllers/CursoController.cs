@@ -198,5 +198,178 @@ namespace XTecDigital_Server.Controllers
             //Angular: Recibo el Json con el view y muestro                             Monstrarlo grafico
         }
 
+
+        [Route("verCursosDisponibles")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public List<Object> verCursosDisponibles()
+        {
+            List<Object> cursos = new List<Object>();
+            Curso usuarioCarrera = new Curso();
+            //Connect to database
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            string insertQuery = "verCursosDisponibles";
+            SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            SqlDataReader dr = cmd.ExecuteReader();
+            try
+            {
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
+
+                     };
+                cursos.Add(response);
+                while (dr.Read())
+                {
+                    var jsons = new[]
+                    {
+                        new {
+                            codigo = dr[0].ToString(),
+                            nombre = dr[1].ToString(),
+                            carrera = dr[2].ToString(),
+                            creditos = (int)dr[3],
+                            habilitado = dr[4],
+                            idAdministrador = dr[5],
+                        }
+
+                     };
+                    Console.WriteLine(jsons);
+                    cursos.Add(jsons);
+                }
+
+            }
+            catch (Exception e)
+            {
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                cursos.Add(response);
+
+            }
+
+            List<object> retornar = new List<object>();
+            for (var x = 0; x < cursos.Count; x++)
+            {
+                var tempList = (IList<object>)cursos[x];
+                retornar.Add(tempList[0]);
+            }
+            conn.Close();
+            return retornar;
+
+        }
+
+
+        [Route("habilitar_deshabilitarCurso")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public object habilitar_deshabilitarCurso(Curso curso)
+        {
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            string insertQuery = "habilitar_deshabilitarCurso";
+            SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@codigo", curso.codigo);
+            List<Object> respuesta = new List<Object>();
+            try
+            {
+                cmd.ExecuteNonQuery();
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
+
+                     };
+                respuesta.Add(response);
+            }
+            catch (Exception e)
+            {
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                respuesta.Add(response);
+            }
+            conn.Close();
+            return respuesta[0];
+        }
+
+
+        [Route("agregarCursoSemestre")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public object agregarCursoSemestre(Curso curso)
+        {
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            string insertQuery = "habilitar_deshabilitarCurso";
+            SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@codigoCurso", curso.codigoCurso);
+            List<Object> respuesta = new List<Object>();
+            try
+            {
+                cmd.ExecuteNonQuery();
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
+
+                     };
+                respuesta.Add(response);
+            }
+            catch (Exception e)
+            {
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                respuesta.Add(response);
+            }
+            conn.Close();
+            return respuesta[0];
+        }
+
+
+
+
+
+
+
+
+
+
+
     }
 }

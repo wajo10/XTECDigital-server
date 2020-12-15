@@ -35,7 +35,6 @@ namespace XTecDigital_Server.Controllers
             cmd.Parameters.AddWithValue("@rubro", evaluacion.rubro);
             cmd.Parameters.AddWithValue("@codigoCurso", evaluacion.codigoCurso);
             cmd.Parameters.AddWithValue("@numeroGrupo", evaluacion.numeroGrupo);
-            cmd.Parameters.AddWithValue("@idRubro", evaluacion.idRubro);
             List<Object> respuesta = new List<Object>();
             try
             {

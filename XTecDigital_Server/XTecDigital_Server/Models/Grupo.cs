@@ -13,5 +13,7 @@ namespace XTecDigital_Server.Models
         public int idGrupo { get; set; }
         public string codigoCurso { get; set; }
         public int numeroGrupo { get; set; }
+        public string cedulaProfesor { get; set; }
+        public string carnet { get; set; }
     }
 }

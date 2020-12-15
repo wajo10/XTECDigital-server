@@ -11,6 +11,7 @@ namespace XTecDigital_Server.Models
         {
         }
         public string codigo { get; set; }
+        public string codigoCurso { get; set; }
         public string nombre { get; set; }
         public string carrera { get; set; }
         public int creditos { get; set; }

@@ -75,9 +75,160 @@ namespace XTecDigital_Server.Controllers
             cmd.Parameters.AddWithValue("@nombre", evaluacion.nombre);
             cmd.Parameters.AddWithValue("@rubro", evaluacion.rubro);
             cmd.Parameters.AddWithValue("@codigoCurso", evaluacion.codigoCurso);
-            cmd.Parameters.AddWithValue("@numeroGrupo", evaluacion.numeroGrupo);
             cmd.ExecuteNonQuery();
             conn.Close();
         }
+
+        [Route("asignarProfesorGrupo")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public object asignarProfesorGrupo(Grupo grupo)
+        {
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            string insertQuery = "asignarProfesorGrupo";
+            SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@codigoCurso", grupo.codigoCurso);
+            cmd.Parameters.AddWithValue("@numeroGrupo", grupo.numeroGrupo);
+            cmd.Parameters.AddWithValue("@cedulaProfesor", grupo.cedulaProfesor);
+            List<Object> respuesta = new List<Object>();
+            try
+            {
+                cmd.ExecuteNonQuery();
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
+
+                     };
+                respuesta.Add(response);
+            }
+            catch (Exception e)
+            {
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                respuesta.Add(response);
+            }
+            conn.Close();
+            return respuesta[0];
+        }
+
+
+
+        [Route("eliminarProfesorGrupo")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public object eliminarProfesorGrupo(Grupo grupo)
+        {
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            string insertQuery = "eliminarProfesorGrupo";
+            SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@codigoCurso", grupo.codigoCurso);
+            cmd.Parameters.AddWithValue("@numeroGrupo", grupo.numeroGrupo);
+            cmd.Parameters.AddWithValue("@cedulaProfesor", grupo.cedulaProfesor);
+            List<Object> respuesta = new List<Object>();
+            try
+            {
+                cmd.ExecuteNonQuery();
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
+
+                     };
+                respuesta.Add(response);
+            }
+            catch (Exception e)
+            {
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                respuesta.Add(response);
+            }
+            conn.Close();
+            return respuesta[0];
+        }
+
+
+
+        [Route("agregarEstudiantesGrupo")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public object agregarEstudiantesGrupo(Grupo grupo)
+        {
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            string insertQuery = "agregarEstudiantesGrupo";
+            SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@carnet", grupo.carnet);
+            cmd.Parameters.AddWithValue("@codigoCurso", grupo.codigoCurso);
+            cmd.Parameters.AddWithValue("@numeroGrupo", grupo.numeroGrupo);
+            List<Object> respuesta = new List<Object>();
+            try
+            {
+                cmd.ExecuteNonQuery();
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
+
+                     };
+                respuesta.Add(response);
+            }
+            catch (Exception e)
+            {
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                respuesta.Add(response);
+            }
+            conn.Close();
+            return respuesta[0];
+        }
+
+
+
+
+
+
+
+
+
+
     }
 }
