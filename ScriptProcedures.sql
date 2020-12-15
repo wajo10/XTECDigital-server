@@ -554,6 +554,23 @@ AS
 	join Grupo as g on g.idGrupo = r.idGrupo;
 GO
 
+--View que permite ver los estudiantes matriculados en todos los cursos
+CREATE OR ALTER VIEW v_estudiantesCursos
+AS
+	select carnetEstudiante, c.codigo from EstudiantesGrupo as eg 
+	inner join Grupo as g on g.idGrupo = eg.idGrupo
+	inner join Curso as c on c.codigo = g.codigoCurso
+	group by codigo, carnetEstudiante
+GO
+
+--Permite ver los estudiantes matriculados en un curso en especifico
+CREATE OR ALTER PROCEDURE verEstudiantesGrupo @codigoCurso varchar (20) AS
+BEGIN
+select * from v_estudiantesCursos where codigo = @codigoCurso
+END;
+GO
+
+
 --Permite ver las notas de los estudiantes segun el grupo al que pertenezca
 CREATE OR ALTER PROCEDURE verNotasGrupo @codigoCurso varchar (15), @numeroGrupo int
 AS

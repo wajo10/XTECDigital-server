@@ -44,7 +44,7 @@ Execute agregarEstudiantesGrupo @carnet = '1010212', @codigoCurso = 'CE3101', @n
 Execute agregarEstudiantesGrupo @carnet = '7524523', @codigoCurso = 'CE3101', @numeroGrupo = 1;
 Execute agregarEstudiantesGrupo @carnet = '535434', @codigoCurso = 'CE3101', @numeroGrupo = 1;
 
-Execute agregarEstudiantesGrupo @carnet = '14453544', @codigoCurso = 'CE1010', @numeroGrupo = 8;
+Execute agregarEstudiantesGrupo @carnet = '1010212', @codigoCurso = 'MA0101', @numeroGrupo = 1;
 Execute agregarEstudiantesGrupo @carnet = '34312', @codigoCurso = 'CE1010', @numeroGrupo = 8;
 Execute agregarEstudiantesGrupo @carnet = '453343', @codigoCurso = 'CE1010', @numeroGrupo = 8;
 Execute agregarEstudiantesGrupo @carnet = '696969', @codigoCurso = 'CE1010', @numeroGrupo = 8;
