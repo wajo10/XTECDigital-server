@@ -194,11 +194,18 @@ CREATE OR ALTER PROCEDURE crearGrupo @codigoCurso varchar(20), @numeroGrupo int
 AS
 BEGIN
 	IF EXISTS (select * from Curso where codigo = @codigoCurso)
-	BEGIN
-	insert into Grupo (codigoCurso, numeroGrupo) values (@codigoCurso, @numeroGrupo);
-	END;
+		BEGIN
+			insert into Grupo (codigoCurso, numeroGrupo) values (@codigoCurso, @numeroGrupo);
+			/*Execute crearCarpeta @nombre = 'Presentaciones', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
+			Execute crearCarpeta @nombre = 'Quices', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
+			Execute crearCarpeta @nombre = 'Examenes', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
+			Execute crearCarpeta @nombre = 'Proyectos', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
+			Execute crearRubro @rubro = 'Quices', @porcentaje = 30, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
+			Execute crearRubro @rubro = 'Examenes', @porcentaje = 30, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
+			Execute crearRubro @rubro = 'Proyectos', @porcentaje = 40, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;*/
+		END;
 	ELSE
-	RAISERROR ('El curso al que intenta agregarle un grupo no existe',16,1);
+		RAISERROR ('El curso al que intenta agregarle un grupo no existe',16,1);
 END;
 GO
 
@@ -264,25 +271,6 @@ BEGIN
 		ROLLBACK TRANSACTION;
 		Return
 	END;
-END;
-GO
-
-
---Crea las carpetas predeterminadas para cada grupo que sea agregado
-CREATE OR ALTER TRIGGER tr_carpetasGrupo ON Grupo
-INSTEAD OF insert
-AS
-BEGIN
-	DECLARE @codCurs varchar(15) = (select codigoCurso from inserted);
-	DECLARE @numGrup int = (select numeroGrupo from inserted);
-	insert into Grupo(codigoCurso, numeroGrupo) values (@codCurs,@numGrup);
-	Execute crearCarpeta @nombre = 'Presentaciones', @codigoCurso = @codCurs , @numeroGrupo = @numGrup;
-	Execute crearCarpeta @nombre = 'Quices', @codigoCurso = @codCurs , @numeroGrupo = @numGrup;
-	Execute crearCarpeta @nombre = 'Examenes', @codigoCurso = @codCurs , @numeroGrupo = @numGrup;
-	Execute crearCarpeta @nombre = 'Proyectos', @codigoCurso = @codCurs , @numeroGrupo = @numGrup;
-	Execute crearRubro @rubro = 'Quices', @porcentaje = 30, @codigoCurso = @codCurs, @numeroGrupo = @numGrup;
-	Execute crearRubro @rubro = 'Examenes', @porcentaje = 30, @codigoCurso = @codCurs, @numeroGrupo = @numGrup;
-	Execute crearRubro @rubro = 'Proyectos', @porcentaje = 40, @codigoCurso = @codCurs, @numeroGrupo = @numGrup;
 END;
 GO
 
@@ -737,6 +725,7 @@ END;
 GO
 --........................................................TRIGGERS........................................................
 
+
 --*******************************PROFESOR******************************************
 
 
@@ -782,32 +771,8 @@ BEGIN
 END;
 GO
 
---........................................................TRIGGERS........................................................
 
---........................................................TRIGGERS........................................................
-/*
-CREATE OR ALTER PROCEDURE prueba
-AS
-BEGIN
-	DECLARE @idCurso varchar(20);
-	DECLARE @Grupo int;
-	DECLARE pruebaCursor cursor for select idCurso, Grupo from Data$ where IdCurso != 'NULL' group by idCurso, grupo;
-	OPEN pruebaCursor fetch next from pruebaCursor into @idCurso, @Grupo;
-	While @@FETCH_STATUS = 0
-	BEGIN
-		insert into Grupo (codigoCurso,numeroGrupo) values (@idCurso,@Grupo)
-		Execute crearCarpeta @nombre = 'Presentaciones', @codigoCurso = @idCurso , @numeroGrupo = @Grupo;
-		Execute crearCarpeta @nombre = 'Quices', @codigoCurso = @idCurso , @numeroGrupo = @Grupo;
-		Execute crearCarpeta @nombre = 'Examenes', @codigoCurso = @idCurso , @numeroGrupo = @Grupo;
-		Execute crearCarpeta @nombre = 'Proyectos', @codigoCurso = @idCurso , @numeroGrupo = @Grupo;
-		Execute crearRubro @rubro = 'Quices', @porcentaje = 30, @codigoCurso = @idCurso, @numeroGrupo = @Grupo;
-		Execute crearRubro @rubro = 'Examenes', @porcentaje = 30, @codigoCurso = @idCurso, @numeroGrupo = @Grupo;
-		Execute crearRubro @rubro = 'Proyectos', @porcentaje = 40, @codigoCurso = @idCurso, @numeroGrupo = @Grupo;
-	END;
-	CLOSE pruebaCursor;
-END;
-GO
-*/
+
 
 --PROCEDURE PARA INICIALIZAR SEMESTRE EN BASE A LA TABLA DE EXCEL
 CREATE OR ALTER PROCEDURE crearSemestreExcel
@@ -825,18 +790,31 @@ BEGIN
 	insert into CursosPorSemestre select s.idSemestre, c.codigo from Curso as c inner join Data$ as d on c.codigo = d.IdCurso
 										inner join Semestre as s on s.ano = d.Ano and s.periodo = d.Semestre
 										group by s.idSemestre, c.codigo;
-	--Crea los grupos
-	/*
-	execute prueba;
-	select * from Grupo
-	select * from Carpetas
-	delete Grupo
-	delete Carpetas
-	delete Rubros
-	*/
 
+	--Crea los grupos de los estudiantes
 	insert into Grupo (codigoCurso, numeroGrupo) select idCurso, Grupo from Data$ where IdCurso != 'NULL' group by idCurso, grupo;
-	
+
+	--Crea las carpetas y evaluaciones por defecto de los grupos
+	Declare db_cursor CURSOR for select idCurso, Grupo from Data$ where IdCurso != 'NULL' group by idCurso, grupo;
+	DECLARE @cod varchar(15);
+	DECLARE @num int;
+	OPEN db_cursor;
+	FETCH NEXT FROM db_cursor into @cod, @num
+	While @@FETCH_STATUS = 0
+	BEGIN
+		DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @cod and numeroGrupo = @num);
+		insert into Carpetas (nombre,idGrupo) values ('Presentaciones', @idGrupo);
+		insert into Carpetas (nombre,idGrupo) values ('Quices', @idGrupo);
+		insert into Carpetas (nombre,idGrupo) values ('Examenes', @idGrupo);
+		insert into Carpetas (nombre,idGrupo) values ('Proyectos', @idGrupo);
+		insert into Rubros (rubro,porcentaje, idGrupo) values ('Quices', 30, @idGrupo);
+		insert into Rubros (rubro,porcentaje, idGrupo) values ('Examenes', 30, @idGrupo);
+		insert into Rubros (rubro,porcentaje, idGrupo) values ('Proyectos', 40, @idGrupo);
+		FETCH NEXT FROM db_cursor INTO @cod, @num;
+	END;
+	CLOSE db_cursor;
+	DEALLOCATE db_cursor;
+
 	--Agrega a los profesores *FALTA LLAMAR EL METODO QUE LOS AGREGUE A LA BASE DE MONGO
 	insert into Profesor select idProfesor from Data$ where idProfesor != 'NULL' group by idProfesor;
 
@@ -855,23 +833,3 @@ BEGIN
 END;
 GO
 
-
-
---(@Codigo, @nombre, @carrera, @creditos, @habilitado, @cedulaAdmin); select * from grupo delete grupo
-/*
-
-select * from carpetas
-select * from Data$; select * from EstudiantesGrupo
-
-select idProfesor from Data$ where idProfesor != 'NULL' group by idProfesor
-
-select idCurso, Grupo from Data$ where IdCurso != 'NULL' group by idCurso, grupo;
-
-select idCurso, NombreCurso from Data$ where IdCurso != 'NULL' group by IdCurso, NombreCurso;
-
-select carnet, nombre, apellido1, apellido2 from Data$ where Carnet != 'Null' group by Carnet, Nombre, Apellido1, Apellido2 order by Nombre
-
-select d.idProfesor, g.idGrupo from Data$ as d inner join Profesor as p on d.IdProfesor = p.cedula
-inner join Grupo as g on g.codigoCurso = d.IdCurso and g.numeroGrupo = d.Grupo
-group by d.IdProfesor, d.Grupo, g.idGrupo;
-*/
