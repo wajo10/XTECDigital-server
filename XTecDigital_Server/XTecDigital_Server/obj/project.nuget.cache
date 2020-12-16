@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "Sl5FB1SYJYwhGlsIu9AzpGaUlbuTMi1/f8sKsRVZk733Aekur6DL1uEMuaVkmtG+BmAZiCgyyIHwUU3obtPnnQ==",
+  "dgSpecHash": "9iNPyxvUbt8wIkL75XK6L+9imd1W0gDwXhw39I8QzcQQCKQla0US/ypAUqQ60HnfiKRl6q8e+lNwlsPWYy8D0A==",
   "success": true,
   "projectFilePath": "C:\\Users\\wajib\\OneDrive - Estudiantes ITCR\\Documentos\\TEC\\2020 II Semestre\\Bases\\Proyecto 2\\Server\\XTECDigital-server\\XTecDigital_Server\\XTecDigital_Server\\XTecDigital_Server.csproj",
   "expectedPackageFiles": [
@@ -39,6 +39,9 @@
     "C:\\Users\\wajib\\.nuget\\packages\\runtime.win-x64.runtime.native.system.data.sqlclient.sni\\4.4.0\\runtime.win-x64.runtime.native.system.data.sqlclient.sni.4.4.0.nupkg.sha512",
     "C:\\Users\\wajib\\.nuget\\packages\\runtime.win-x86.runtime.native.system.data.sqlclient.sni\\4.4.0\\runtime.win-x86.runtime.native.system.data.sqlclient.sni.4.4.0.nupkg.sha512",
     "C:\\Users\\wajib\\.nuget\\packages\\sharpcompress\\0.23.0\\sharpcompress.0.23.0.nupkg.sha512",
+    "C:\\Users\\wajib\\.nuget\\packages\\syncfusion.ej2.javascript\\18.3.0.53\\syncfusion.ej2.javascript.18.3.0.53.nupkg.sha512",
+    "C:\\Users\\wajib\\.nuget\\packages\\syncfusion.ej2.mvc4\\18.3.0.53\\syncfusion.ej2.mvc4.18.3.0.53.nupkg.sha512",
+    "C:\\Users\\wajib\\.nuget\\packages\\syncfusion.licensing\\18.3.0.53\\syncfusion.licensing.18.3.0.53.nupkg.sha512",
     "C:\\Users\\wajib\\.nuget\\packages\\system.appcontext\\4.3.0\\system.appcontext.4.3.0.nupkg.sha512",
     "C:\\Users\\wajib\\.nuget\\packages\\system.buffers\\4.5.1\\system.buffers.4.5.1.nupkg.sha512",
     "C:\\Users\\wajib\\.nuget\\packages\\system.collections\\4.3.0\\system.collections.4.3.0.nupkg.sha512",
@@ -98,5 +101,16 @@
     "C:\\Users\\wajib\\.nuget\\packages\\system.xml.readerwriter\\4.3.0\\system.xml.readerwriter.4.3.0.nupkg.sha512",
     "C:\\Users\\wajib\\.nuget\\packages\\system.xml.xdocument\\4.3.0\\system.xml.xdocument.4.3.0.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "El paquete \"Syncfusion.EJ2.MVC4 18.3.0.53\" se restauró con \".NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8\" en lugar de la plataforma de destino del proyecto \".NETCoreApp,Version=v3.1\". Puede que el paquete no sea totalmente compatible con el proyecto.",
+      "libraryId": "Syncfusion.EJ2.MVC4",
+      "targetGraphs": [
+        ".NETCoreApp,Version=v3.1"
+      ]
+    }
+  ]
 }

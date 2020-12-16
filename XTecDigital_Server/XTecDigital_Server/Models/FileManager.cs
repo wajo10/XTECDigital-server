@@ -12,9 +12,12 @@ namespace XTecDigital_Server.Models
     {
         public string Action { get; set; }
         public string path { get; set; }
+        public string Ubic { get; set; }
         public int Grupo { get; set; }
         public string Curso { get; set; }
         public string Details { get; set; }
+        public string name { get; set; }
+        public bool admin { get; set; }
         public string[] names { get; set; }
         public IList<IFormFile> uploadFiles { get; set; }
         public string getString()
@@ -143,27 +146,92 @@ namespace XTecDigital_Server.Models
             SqlConnection conn = new SqlConnection(serverKey);
             conn.Open();
             SqlCommand cmd;
+            if (!args.admin)
+            {
+                Response.Clear();
+                Response.StatusCode = 520;
+                Response.Headers.Add("status", "No tiene permiso para eliminar este documento");
+                return Response;
+            }
 
             try
             {
                 Debug.WriteLine("Entra a carpeta");
                 args.path = args.path.Replace("/", "");
                 Debug.WriteLine(args.path);
-                string insertQuery = "eliminarDocumentos";
-                cmd = new SqlCommand(insertQuery, conn);
-                cmd.CommandType = System.Data.CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@nombreDocumento", args.names[0]);
-                cmd.Parameters.AddWithValue("@nombreCarpeta", args.path);
-                cmd.Parameters.AddWithValue("@codigoCurso", args.Curso);
-                cmd.Parameters.AddWithValue("@numeroGrupo", args.Grupo);
-                cmd.ExecuteNonQuery();
-                Debug.WriteLine("Eliminado correctamente");
-                Debug.WriteLine(args.names[0]);
-                Debug.WriteLine(args.path);
+                if (path != "")
+                {
+                    foreach (var name in args.names)
+                    {
+                        string insertQuery = "eliminarDocumentos";
+                        cmd = new SqlCommand(insertQuery, conn);
+                        cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@nombreDocumento", name);
+                        cmd.Parameters.AddWithValue("@nombreCarpeta", args.path);
+                        cmd.Parameters.AddWithValue("@codigoCurso", args.Curso);
+                        cmd.Parameters.AddWithValue("@numeroGrupo", args.Grupo);
+                        cmd.ExecuteNonQuery();
+                        Debug.WriteLine("Eliminado correctamente");
+                        Debug.WriteLine(name);
+                        Debug.WriteLine(args.path);
+                    }
+                    
+                }
+                else
+                {
+                    foreach (var name in args.names)
+                    {
+                        string insertQuery = "eliminarCarpeta";
+                        cmd = new SqlCommand(insertQuery, conn);
+                        cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@nombre", name);
+                        cmd.Parameters.AddWithValue("@codigoCurso", args.Curso);
+                        cmd.Parameters.AddWithValue("@numeroGrupo", args.Grupo);
+                        cmd.ExecuteNonQuery();
+                        Debug.WriteLine("Eliminado correctamente");
+                        Debug.WriteLine(args.names[0]);
+                    }
+                    
+                }
+                
             }
             catch(Exception e)
             {
                var error = new { code = 20, mesagge = e };
+                return error;
+            }
+            return 0;
+        }
+
+        public object create(String serverKey, HttpResponse Response)
+        {
+            Debug.WriteLine("Crear carpeta");
+            var args = this;
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            SqlCommand cmd;
+            if(!args.admin)
+            {
+                Response.Clear();
+                Response.StatusCode = 520;
+                Response.Headers.Add("status", "No tiene permiso para eliminar este documento");
+                return Response;
+            }
+            try
+            {
+                string insertQuery = "crearCarpeta";
+                cmd = new SqlCommand(insertQuery, conn);
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@nombre", args.name);
+                cmd.Parameters.AddWithValue("@codigoCurso", args.Curso);
+                cmd.Parameters.AddWithValue("@numeroGrupo", args.Grupo);
+                cmd.ExecuteNonQuery();
+                Debug.WriteLine("Creado correctamente");
+            }
+            
+            catch (Exception e)
+            {
+                var error = new { code = 20, mesagge = e };
                 return error;
             }
             return 0;

@@ -16,6 +16,7 @@ namespace XTecDigital_Server.Models
         public float tamano { get; set; }
         public DateTime fechaSubido { get; set; }
         public int idCarpeta { get; set; }
+        public Boolean admin { get; set; }
         public string tipoArchivo { get; set; }
         public string nombreCarpeta { get; set; }
         public int idGrupo { get; set; }
