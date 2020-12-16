@@ -103,6 +103,7 @@ BEGIN
 END;
 GO
 
+
 --Eliminar carpetas
 CREATE OR ALTER PROCEDURE eliminarCarpeta @nombre varchar(50), @codigoCurso varchar(10), @numeroGrupo int
 AS
@@ -139,6 +140,19 @@ BEGIN
 END;
 GO
 
+/*
+execute crearDocumentos @nombreDocumento = 'documentoPrueba', @archivo = 'archivo prueba', @tamano = 1, 
+@nombreCarpeta = 'Presentaciones', @codigoCurso = 'CE3101', @numeroGrupo = 1, @tipoArchivo = '.txt'
+execute crearDocumentos @nombreDocumento = 'documento2', @archivo = 'archivo prueba', @tamano = 1, 
+@nombreCarpeta = 'Presentaciones', @codigoCurso = 'CE3101', @numeroGrupo = 1, @tipoArchivo = '.txt'
+
+execute eliminarDocumentos @nombreDocumento ='documentoPrueba', @nombreCarpeta = 'Presentaciones',
+@codigoCurso = 'CE3101', @numeroGrupo = 1
+
+select * from Documentos
+*/
+
+
 --Crear un rubro
 CREATE OR ALTER PROCEDURE crearRubro @rubro varchar(50), @porcentaje decimal(5,2), @codigoCurso varchar (30), @numeroGrupo int
 AS
@@ -147,6 +161,7 @@ BEGIN
 	insert into Rubros(rubro, porcentaje, idGrupo) values (@rubro, @porcentaje, @idGrupo);
 END;
 GO
+
 
 --Eliminar un rubro
 CREATE OR ALTER PROCEDURE eliminarRubro @rubro varchar(50), @codigoCurso varchar (30), @numeroGrupo int
@@ -201,6 +216,7 @@ BEGIN
 	insert into Grupo (codigoCurso, numeroGrupo) values (@codigoCurso, @numeroGrupo);
 END;
 GO
+
 
 --Establecer los profesores del grupo.
 CREATE OR ALTER PROCEDURE asignarProfesorGrupo @codigoCurso varchar(10), @numeroGrupo int, @cedulaProfesor varchar(20)
@@ -292,6 +308,19 @@ Begin
 End;
 Go
 
+--Si la evaluacion creada no es grupal, se la asigna a todos los estudiantes de un grupo
+CREATE OR ALTER TRIGGER tr_asignarEvaluacionGrupo on Evaluaciones
+for insert
+As
+If (select grupal from inserted) = 0
+Begin
+	Declare @idEvaluacion int = (select idEvaluacion from inserted);
+	Declare @idRubro int = (select idRubro from inserted);
+	Declare @idGrupo int = (select idGrupo from Rubros where idRubro = @idRubro);
+	insert into EvaluacionesEstudiantes (carnet, idEvaluacion) 
+	values ((select carnetEstudiante from EstudiantesGrupo where idGrupo = @idGrupo), @idEvaluacion);
+End;
+Go
 
 --Valida que la carpeta que se crea no exista en el mismo grupo
 Create or Alter Trigger tr_verificarCarpeta on Carpetas
@@ -588,7 +617,7 @@ GO
 
 
 --NECESITO UNIR ESTO CON LO DE FABIAN
---Reporte de notas *VISTA QUE DETALLE TODAS LAS NOTAS Y CALCULE EL VALOR OBTENIDO PARA CADA RUBRO, ASÍ COMO LA NOTA FINAL CURSO Y CREAR PDF
+--Reporte de notas *VISTA QUE DETALLE TODAS LAS NOTAS Y CALCULE EL VALOR OBTENIDO PARA CADA RUBRO, ASï¿½ COMO LA NOTA FINAL CURSO Y CREAR PDF
 --Reporte de estudiantes *VISTA CON TODA LA INFORMACION DE LOS ESTUDIANTES DE UN GRUPO Y CREAR PDF
 
 --........................................................TRIGGERS........................................................

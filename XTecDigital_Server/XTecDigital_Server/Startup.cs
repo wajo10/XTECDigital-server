@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -24,7 +25,6 @@ namespace XTecDigital_Server
         {
             return "Data Source=DESKTOP-UBFFPD5;Initial Catalog=baseXTecDigital;Integrated Security=True";
         }
-
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -41,6 +41,15 @@ namespace XTecDigital_Server
                     });
             });
             services.AddControllers();
+
+            services.AddMvc();
+            services.AddDistributedMemoryCache();
+            services.AddHttpContextAccessor();
+
+            services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromMinutes(30);//We set Time here 
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -55,9 +64,12 @@ namespace XTecDigital_Server
             app.UseStaticFiles();
             app.UseRouting();
 
+            app.UseSession();
+
             app.UseCors();
 
             app.UseAuthorization();
+
 
             app.UseEndpoints(endpoints =>
             {
