@@ -1,23 +1,27 @@
-Execute agregarProfesor @cedula = '2124';
-Execute agregarProfesor @cedula = '1234';
-Execute agregarProfesor @cedula = '101013';
-Execute agregarProfesor @cedula = '798445';
+Execute agregarProfesor @cedula = '411110';
+Execute agregarProfesor @cedula = '40348';
+Execute agregarProfesor @cedula = '24713';
+Execute agregarProfesor @cedula = '24713';
 
 Execute agregarAdmin @cedula = '0';
+Execute agregarAdmin @cedula = '12345';
+/*
 Execute agregarAdmin @cedula = '11111';
-Execute agregarAdmin @cedula = '222222';
+
 Execute agregarAdmin @cedula = '3333334';
+*/
 
-
-Execute agregarEstudiante @carnet = '1010212';
-Execute agregarEstudiante @carnet = '7524523';
-Execute agregarEstudiante @carnet = '535434';
-Execute agregarEstudiante @carnet = '453343';
+Execute agregarEstudiante @carnet = '2018099536';
+Execute agregarEstudiante @carnet = '2018086985';
+Execute agregarEstudiante @carnet = '2018319178';
+Execute agregarEstudiante @carnet = '2018099304';
+/*
 Execute agregarEstudiante @carnet = '696969';
 Execute agregarEstudiante @carnet = '34312';
 Execute agregarEstudiante @carnet = '674536453';
 Execute agregarEstudiante @carnet = '645679896';
 Execute agregarEstudiante @carnet = '14453544';
+*/
 
 --Creacion semestre
 Execute crearSemestre @ano = '2021', @periodo = 1, @cedulaAdmin = '11111';
@@ -60,6 +64,9 @@ Execute crearEvaluacion @grupal = 1, @nombre = 'Evaluacion grupal', @porcentaje 
 --Evaluacion para probar el trigger de publicar notas * FALTA AGREGAR ESTUDIANTES A ESTA EVALUACION PARA PROBAR
 Execute crearEvaluacion @grupal = 0, @nombre = 'Evaluacion trigger', @porcentaje = 25, @fechaInicio = '2020-12-09 22:55:13.653', 
 @fechaFin = '2020-12-09 22:56:13.653', @archivo = 'archivo prueba', @rubro = 'Quices', @codigoCurso = 'CE1010', @numeroGrupo = 8;
+
+Execute crearEvaluacion @grupal = 0, @nombre = 'Proyecto prueba', @porcentaje = 40, @fechaInicio = '2020-12-09 22:55:13.653', 
+@fechaFin = '2020-12-10 22:56:13.653', @archivo = 'archivo prueba', @rubro = 'Proyectos', @codigoCurso = 'CE3101', @numeroGrupo = 1;
 
 
 select * from v_notasEstudiantes
