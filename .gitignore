@@ -2,3 +2,7 @@
 XTecDigital_Server/.vs/XTecDigital_Server/DesignTimeBuild/.dtbcache.v2
 
 XTecDigital_Server/.vs/XTecDigital_Server/v16/.suo
+
+XTecDigital_Server/XTecDigital_Server/bin/
+
+XTecDigital_Server/XTecDigital_Server/obj/Debug/
