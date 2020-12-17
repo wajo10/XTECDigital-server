@@ -239,13 +239,25 @@ namespace XTecDigital_Server.Controllers
                 cursos.Add(response);
                 while (dr.Read())
                 {
+                    var creditos = 0;
+                    var carrera = "N/A";
+                    try
+                    {
+                        creditos = (int)dr[3];
+                        carrera = dr[2].ToString();
+                    }
+                    catch
+                    {
+                        creditos = 0;
+                        carrera = "N/A";
+                    }
                     var jsons = new[]
                     {
                         new {
                             codigo = dr[0].ToString(),
                             nombre = dr[1].ToString(),
-                            carrera = dr[2].ToString(),
-                            creditos = (int)dr[3],
+                            carrera = carrera,
+                            creditos = creditos,
                             habilitado = dr[4],
                             idAdministrador = dr[5],
                         }
