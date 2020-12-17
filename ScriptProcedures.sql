@@ -246,13 +246,13 @@ BEGIN
 	IF EXISTS (select * from CursosPorSemestre where codigoCurso = @codigoCurso)
 		BEGIN
 			insert into Grupo (codigoCurso, numeroGrupo) values (@codigoCurso, @numeroGrupo);
-			/*Execute crearCarpeta @nombre = 'Presentaciones', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
+			Execute crearCarpeta @nombre = 'Presentaciones', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
 			Execute crearCarpeta @nombre = 'Quices', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
 			Execute crearCarpeta @nombre = 'Examenes', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
 			Execute crearCarpeta @nombre = 'Proyectos', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
 			Execute crearRubro @rubro = 'Quices', @porcentaje = 30, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
 			Execute crearRubro @rubro = 'Examenes', @porcentaje = 30, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
-			Execute crearRubro @rubro = 'Proyectos', @porcentaje = 40, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;*/
+			Execute crearRubro @rubro = 'Proyectos', @porcentaje = 40, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
 		END;
 	ELSE
 		RAISERROR ('El curso al que intenta agregarle un grupo no existe',16,1);
@@ -900,4 +900,31 @@ END;
 GO
 
 
-
+/*
+CREATE OR ALTER PROCEDURE PRUEBA
+AS
+BEGIN
+	Create table #tempTable (
+	Carnet varchar (20),
+	Nombre varchar (50),
+	Apellido1 varchar (50),
+	Apellido2 varchar (50),
+	IdCurso varchar (10),
+	NombreCurso varchar (100),
+	Ano int,
+	Semestre int,
+	Grupo int,
+	IdProfesor varchar (50),
+	NombreProfesor varchar (50),
+	ApellidoProfesor varchar (50),
+	ApellidoProfesor2 varchar (50)
+	);
+	select * from #tempTable
+	INSERT INTO #tempTable SELECT A.[Column1], A.[Column2], A.[Column3], A.[Column4]
+	FROM OPENROWSET 
+	('Microsoft.Jet.OLEDB.4.0', 'Excel 8.0;Database=D:\Excel.xls;HDR=YES', 'select * from [Sheet1$]') AS A;
+	drop table #tempTable
+	select * from Data$
+END;
+GO
+*/
