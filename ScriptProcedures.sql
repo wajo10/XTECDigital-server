@@ -208,13 +208,13 @@ GO
 
 --Crear Evaluacion
 CREATE OR ALTER PROCEDURE crearEvaluacion @grupal int, @nombre varchar(50), @porcentaje decimal(5,2), @fechaInicio datetime, @fechaFin datetime,
-@archivo varchar(MAX), @rubro varchar(50), @codigoCurso varchar(20), @numeroGrupo int
+@archivo varchar(MAX), @nombArch varchar (100), @tipArch varchar(100),  @rubro varchar(50), @codigoCurso varchar(20), @numeroGrupo int
 AS
 BEGIN
 	DECLARE @idGrup int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
 	DECLARE @idRubro int = (select idRubro from Rubros where idGrupo = @idGrup and rubro = @rubro);
-	insert into Evaluaciones (grupal, nombre, porcentaje, fechaInicio, fechaFin, archivo, idRubro)
-	values (@grupal, @nombre, @porcentaje, @fechaInicio, @fechaFin,  @archivo, @idRubro);
+	insert into Evaluaciones (grupal, nombre, porcentaje, fechaInicio, fechaFin, archivo, idRubro, nombreArchivo, tipoArchivo)
+	values (@grupal, @nombre, @porcentaje, @fechaInicio, @fechaFin,  @archivo, @idRubro, @nombArch, @tipArch);
 	IF (@grupal = 0)
 	BEGIN
 		DECLARE @idEva int = (select idEvaluacion from Evaluaciones where idRubro = @idRubro and nombre = @nombre);
@@ -354,7 +354,7 @@ END;
 GO
 
 --Obtiene los profesores y sus datos del excel
-CREATE OR ALTER PROCEDURE obtenerEstudiantesExcel
+CREATE OR ALTER PROCEDURE obtenerProfesorExcel
 AS
 BEGIN
 select IdProfesor, NombreProfesor, ApellidoProfesor,ApellidoProfesor2 from  Data$ where IdProfesor != 'NULL' 
@@ -583,7 +583,7 @@ AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
 	Select e.idEvaluacion, e.nombre nombreEvaluacion, e.porcentaje porcentajeEvaluacion, r.porcentaje porcentajeRubro, e.grupal, e.fechaInicio,
-	e.fechaFin, e.archivo from Evaluaciones as e
+	e.fechaFin, e.nombreArchivo, e.tipoArchivo, e.archivo from Evaluaciones as e
 	inner join Rubros as r on e.idRubro = r.idRubro 
 	where r.idGrupo = @idGrupo and rubro = @rubro;
 END;
@@ -634,14 +634,16 @@ END;
 GO
 
 --Revisar las evaluaciones estudiante, subir comentario, poner nota, subir archivo retroalimentacion)
-CREATE OR ALTER PROCEDURE revisarEvaluacion @carnet varchar(20), @idEvaluacion int, @nota decimal(5,2), @comentario varchar(200), 
-@archivoRetroalimentacion varchar(MAX)
+CREATE OR ALTER PROCEDURE revisarEvaluacion @carnet varchar(20), @idEvaluacion int, @nota decimal(5,2), @comentario varchar(200), @nombreArch varchar(100),
+@tipoArch varchar (100), @archivoRetroalimentacion varchar(MAX)
 AS
 BEGIN
-	update EvaluacionesEstudiantes set nota = @nota, comentario = @comentario, archivoRetroalimentacion =  @archivoRetroalimentacion
+	update EvaluacionesEstudiantes set nota = @nota, comentario = @comentario, archivoRetroalimentacion =  @archivoRetroalimentacion, 
+	nombArchRetr = @nombreArch, tipoArchRetr = @tipoArch
 	where carnet = @carnet and idEvaluacion = @idEvaluacion;
 END;
 GO
+
 
 --Indica que las notas de una evaluacion ya fueron publicadas y crea una noticia por medio de un trigger
 CREATE OR ALTER PROCEDURE publicarNotas @idEvaluacion int AS
@@ -868,12 +870,13 @@ END;
 GO
 
 --Enviar evaluaciones
-CREATE OR ALTER PROCEDURE subirEvaluacion @archivo varchar(MAX), @idEvaluacion int, @carnet varchar(15)
+CREATE OR ALTER PROCEDURE subirEvaluacion @nombArch varchar(100), @tipoArch varchar (100) , @archivo varchar(MAX), @idEvaluacion int, @carnet varchar(15)
 AS
 BEGIN
-	update EvaluacionesEstudiantes set archivoSolucion = @archivo where idEvaluacion = @idEvaluacion and carnet = @carnet;
+	update EvaluacionesEstudiantes set archivoSolucion = @archivo, nomArchSol = @nombArch, tipoArchSol = @tipoArch where idEvaluacion = @idEvaluacion and carnet = @carnet;
 END;
 GO
+
 
 --Permite ver las notas de los estudiantes segun el grupo al que pertenezca
 CREATE OR ALTER PROCEDURE verNotasEstudianteGrupo @carnet varchar(15), @codigoCurso varchar (15), @numeroGrupo int
