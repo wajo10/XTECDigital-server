@@ -42,7 +42,8 @@ namespace XTecDigital_Server.Controllers
                         new
                         {
                             respuesta = "200 OK",
-                            error = "null"
+                            error = "null",
+                            rol = "estudiante"
                         },
                      };
                 var estudiante = new[]
@@ -51,8 +52,8 @@ namespace XTecDigital_Server.Controllers
                         {
                             carnet = document.GetValue("carnet").AsString,
                             nombre = document.GetValue("nombre").AsString,
-                            email = document.GetValue("email").AsString,
-                            rol = document.GetValue("rol").AsString,
+                            apellido = document.GetValue("apellido").AsString,
+                            apellido1 = document.GetValue("apellido1").AsString,
                         },
                      };
                 respuesta.Add(response);
@@ -84,17 +85,18 @@ namespace XTecDigital_Server.Controllers
                         new
                         {
                             respuesta = "200 OK",
-                            error = "null"
+                            error = "null",
+                            rol = "profesor"
                         },
                      };
                 var profesor = new[]
                         {
                         new
                         {
-                            cedula = document.GetValue("cedula").AsString,
+                            carnet = document.GetValue("cedula").AsString,
                             nombre = document.GetValue("nombre").AsString,
-                            email = document.GetValue("email").AsString,
-                            rol = document.GetValue("rol").AsString,
+                            apellido = document.GetValue("apellido").AsString,
+                            apellido1 = document.GetValue("apellido1").AsString,
                         },
                      };
                 respuesta.Add(response);
@@ -125,7 +127,8 @@ namespace XTecDigital_Server.Controllers
                         new
                         {
                             respuesta = "200 OK",
-                            error = "null"
+                            error = "null",
+                            rol = "admin"
                         },
                      };
                 var admin = new[]
@@ -133,7 +136,6 @@ namespace XTecDigital_Server.Controllers
                         new
                         {
                             cedula = document.GetValue("cedula").AsString,
-                            rol = document.GetValue("rol").AsString,
                         },
                      };
                 respuesta.Add(response);
@@ -387,7 +389,7 @@ namespace XTecDigital_Server.Controllers
 
         [Route("agregarEstudiantesGrupo")]
         [EnableCors("AnotherPolicy")]
-        [HttpPost]
+        [HttpGet]
         public void agregarEstudiantesGrupo(Usuario usuario)
         {
             SqlConnection conn = new SqlConnection(serverKey);

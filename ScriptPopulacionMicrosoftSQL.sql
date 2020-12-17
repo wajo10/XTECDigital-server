@@ -28,9 +28,10 @@ Execute agregarEstudiante @carnet = '2018086985';
 Execute agregarEstudiante @carnet = '2018319178';
 Execute agregarEstudiante @carnet = '2018099304';
 
+
 --Creacion semestre
 Execute crearSemestre @ano = '2021', @periodo = 1, @cedulaAdmin = '11111';
-
+Select * from Curso
 --Creacion de cursos
 Execute crearCurso @Codigo = 'CE3101', @nombre = 'BASES DE DATOS', @carrera = 'INGENIERIA EN COMPUTADORES', @creditos = 4, @habilitado = 1, @cedulaAdmin = 11111;
 Execute crearCurso @Codigo = 'MA0101', @nombre = 'MATEMATICA GENERAL', @carrera = 'INGENIERIA EN COMPUTADORES', @creditos = 2, @habilitado = 1, @cedulaAdmin = 11111;

@@ -197,6 +197,7 @@ namespace XTecDigital_Server.Controllers
                                                             { "nombre", dr[1].ToString() },
                                                             { "apellido", dr[2].ToString() },
                                                             { "apellido1", dr[2].ToString() },
+                                                            { "password", dr[0].ToString() },
                                                         };
                     collection.InsertOne(document);
                 }
@@ -237,6 +238,7 @@ namespace XTecDigital_Server.Controllers
                                                             { "nombre", dr[1].ToString() },
                                                             { "apellido", dr[2].ToString() },
                                                             { "apellido1", dr[2].ToString() },
+                                                            { "password", dr[0].ToString() },
                                                         };
                     collection.InsertOne(document);
                 }

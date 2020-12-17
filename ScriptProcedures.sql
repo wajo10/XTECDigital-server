@@ -40,6 +40,7 @@ BEGIN
 END;
 GO
 
+
 --Ver todos los cursos que hay en la base de datos
 CREATE OR ALTER PROCEDURE verCursos
 AS
@@ -56,6 +57,15 @@ BEGIN
 END;
 GO
 
+CREATE OR ALTER PROCEDURE verSemestres
+AS
+BEGIN
+	SELECT * FROM Semestre ORDER BY ano DESC;
+END;
+GO
+
+
+
 --Ver todos los cursos de un semestre
 CREATE OR ALTER PROCEDURE verCursosSemestre @ano int, @periodo varchar(10)
 AS
@@ -69,6 +79,9 @@ BEGIN
 	where s.idSemestre = @idSemestre;
 END;
 GO
+
+
+
 
 --Permite ver los estudiantes de un grupo de un semestre y curso especifico
 CREATE OR ALTER PROCEDURE verEstudiantesSemestre @ano int, @periodo varchar(10), @grupo int, @codigoCurso varchar (10)
@@ -136,13 +149,12 @@ END;
 GO
 
 --Crea un semestre (1 para el primer semestre, 2 para el segundo semestre y V para el periodo de verano).  
-CREATE OR ALTER PROCEDURE crearSemestre @ano int, @periodo int, @cedulaAdmin int
+CREATE OR ALTER PROCEDURE crearSemestre @ano int, @periodo varchar(50), @cedulaAdmin varchar(50)
 AS
 Begin
 INSERT INTO Semestre (ano, periodo, cedulaAdmin) values (@ano, @periodo, @cedulaAdmin);
 End;
 Go
-
 --Crear carpetas
 CREATE OR ALTER PROCEDURE crearCarpeta @nombre varchar(50), @codigoCurso varchar(10), @numeroGrupo int
 AS
@@ -265,13 +277,13 @@ BEGIN
 	IF EXISTS (select * from CursosPorSemestre where codigoCurso = @codigoCurso)
 		BEGIN
 			insert into Grupo (codigoCurso, numeroGrupo) values (@codigoCurso, @numeroGrupo);
-			/*Execute crearCarpeta @nombre = 'Presentaciones', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
+			Execute crearCarpeta @nombre = 'Presentaciones', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
 			Execute crearCarpeta @nombre = 'Quices', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
 			Execute crearCarpeta @nombre = 'Examenes', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
 			Execute crearCarpeta @nombre = 'Proyectos', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
 			Execute crearRubro @rubro = 'Quices', @porcentaje = 30, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
 			Execute crearRubro @rubro = 'Examenes', @porcentaje = 30, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
-			Execute crearRubro @rubro = 'Proyectos', @porcentaje = 40, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;*/
+			Execute crearRubro @rubro = 'Proyectos', @porcentaje = 40, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
 		END;
 	ELSE
 		RAISERROR ('El curso al que intenta agregarle un grupo no existe',16,1);
@@ -377,11 +389,10 @@ GO
 CREATE OR ALTER PROCEDURE obtenerProfesorExcel
 AS
 BEGIN
-select IdProfesor, NombreProfesor, ApellidoProfesor,ApellidoProfesor2 from  Data$ where IdProfesor != 'NULL' 
-group by IdProfesor, NombreProfesor, ApellidoProfesor, ApellidoProfesor2
+select IdProfesor, NombreProfesor, ApellidoProfesor,ApellidoProfesor1 from  Data$ where IdProfesor != 'NULL' 
+group by IdProfesor, NombreProfesor, ApellidoProfesor, ApellidoProfesor1
 END;
 GO
-
 
 --........................................................TRIGGERS........................................................
 
@@ -420,23 +431,6 @@ BEGIN
 END;
 GO
 
---Crea las carpetas predeterminadas para cada grupo que sea agregado
-CREATE OR ALTER TRIGGER tr_carpetasGrupo ON Grupo
-INSTEAD OF insert
-AS
-BEGIN
-	DECLARE @codCurs varchar(15) = (select codigoCurso from inserted);
-	DECLARE @numGrup int = (select numeroGrupo from inserted);
-	insert into Grupo(codigoCurso, numeroGrupo) values (@codCurs,@numGrup);
-	Execute crearCarpeta @nombre = 'Presentaciones', @codigoCurso = @codCurs , @numeroGrupo = @numGrup;
-	Execute crearCarpeta @nombre = 'Quices', @codigoCurso = @codCurs , @numeroGrupo = @numGrup;
-	Execute crearCarpeta @nombre = 'Examenes', @codigoCurso = @codCurs , @numeroGrupo = @numGrup;
-	Execute crearCarpeta @nombre = 'Proyectos', @codigoCurso = @codCurs , @numeroGrupo = @numGrup;
-	Execute crearRubro @rubro = 'Quices', @porcentaje = 30, @codigoCurso = @codCurs, @numeroGrupo = @numGrup;
-	Execute crearRubro @rubro = 'Examenes', @porcentaje = 30, @codigoCurso = @codCurs, @numeroGrupo = @numGrup;
-	Execute crearRubro @rubro = 'Proyectos', @porcentaje = 40, @codigoCurso = @codCurs, @numeroGrupo = @numGrup;
-END;
-GO
 
 --Si la evaluacion creada no es grupal, se la asigna a todos los estudiantes de un grupo
 CREATE OR ALTER TRIGGER tr_asignarEvaluacionGrupo on Evaluaciones
@@ -962,6 +956,6 @@ BEGIN
 	Select * from Noticias where idGrupo = @idGrupo order by fecha desc;
 END;
 GO
-
-
-
+select * from curso
+execute verEstudiantesSemestre @ano = 2021, @periodo = 1, @grupo = 1,@codigoCurso = 'CE3101'
+select * from Semestre
