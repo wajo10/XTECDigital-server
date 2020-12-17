@@ -102,4 +102,6 @@ execute revisarEvaluacion @carnet = '1010212', @idEvaluacion = 11, @nota = 92.35
 select * from Evaluaciones
 DBCC CHECKIDENT ('Evaluaciones', RESEED, 0) 
 select * from Carpetas
+
+select * from Curso
 */

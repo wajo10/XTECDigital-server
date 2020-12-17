@@ -5491,16 +5491,11 @@
     ]
   },
   "packageFolders": {
-<<<<<<< HEAD
     "C:\\Users\\ramir\\.nuget\\packages\\": {}
-=======
-    "C:\\Users\\wajib\\.nuget\\packages\\": {}
->>>>>>> visualizacionDocumentos
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-<<<<<<< HEAD
       "projectUniqueName": "C:\\Users\\ramir\\Documents\\Computadores\\6Semestre\\Bases de Datos\\XTECDigital-server\\XTecDigital_Server\\XTecDigital_Server\\XTecDigital_Server.csproj",
       "projectName": "XTecDigital_Server",
       "projectPath": "C:\\Users\\ramir\\Documents\\Computadores\\6Semestre\\Bases de Datos\\XTECDigital-server\\XTecDigital_Server\\XTecDigital_Server\\XTecDigital_Server.csproj",
@@ -5509,16 +5504,6 @@
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\ramir\\AppData\\Roaming\\NuGet\\NuGet.Config",
-=======
-      "projectUniqueName": "C:\\Users\\wajib\\OneDrive - Estudiantes ITCR\\Documentos\\TEC\\2020 II Semestre\\Bases\\Proyecto 2\\Server\\XTECDigital-server\\XTecDigital_Server\\XTecDigital_Server\\XTecDigital_Server.csproj",
-      "projectName": "XTecDigital_Server",
-      "projectPath": "C:\\Users\\wajib\\OneDrive - Estudiantes ITCR\\Documentos\\TEC\\2020 II Semestre\\Bases\\Proyecto 2\\Server\\XTECDigital-server\\XTecDigital_Server\\XTecDigital_Server\\XTecDigital_Server.csproj",
-      "packagesPath": "C:\\Users\\wajib\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\wajib\\OneDrive - Estudiantes ITCR\\Documentos\\TEC\\2020 II Semestre\\Bases\\Proyecto 2\\Server\\XTECDigital-server\\XTecDigital_Server\\XTecDigital_Server\\obj\\",
-      "projectStyle": "PackageReference",
-      "configFilePaths": [
-        "C:\\Users\\wajib\\AppData\\Roaming\\NuGet\\NuGet.Config",
->>>>>>> visualizacionDocumentos
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -5583,20 +5568,22 @@
             "privateAssets": "all"
           }
         },
-<<<<<<< HEAD
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.100\\RuntimeIdentifierGraph.json"
-=======
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.301\\RuntimeIdentifierGraph.json"
->>>>>>> visualizacionDocumentos
       }
     }
   },
   "logs": [
     {
+      "code": "Undefined",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Problem reading the cache file C:\\Users\\ramir\\Documents\\Computadores\\6Semestre\\Bases de Datos\\XTECDigital-server\\XTecDigital_Server\\XTecDigital_Server\\obj\\project.nuget.cache : Invalid property identifier character: <. Path 'version', line 3, position 0."
+    },
+    {
       "code": "NU1701",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "El paquete \"Syncfusion.EJ2.MVC4 18.3.0.53\" se restauró con \".NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8\" en lugar de la plataforma de destino del proyecto \".NETCoreApp,Version=v3.1\". Puede que el paquete no sea totalmente compatible con el proyecto.",
+      "message": "Package 'Syncfusion.EJ2.MVC4 18.3.0.53' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8' instead of the project target framework '.NETCoreApp,Version=v3.1'. This package may not be fully compatible with your project.",
       "libraryId": "Syncfusion.EJ2.MVC4",
       "targetGraphs": [
         ".NETCoreApp,Version=v3.1"

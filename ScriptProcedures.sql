@@ -25,7 +25,7 @@ Begin
 INSERT INTO Administrador values (@cedula);
 End;
 Go
-
+Select * from Curso
 
 --*******************************ADMINISTRADOR******************************************
 --Crear curso

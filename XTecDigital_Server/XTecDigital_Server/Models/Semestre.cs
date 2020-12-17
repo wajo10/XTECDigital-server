@@ -11,6 +11,6 @@ namespace XTecDigital_Server.Models
         public int idSemestre { get; set; }
         public int ano { get; set; }
         public string periodo { get; set; }
-        public int cedulaAdmin { get; set; }
+        public string cedulaAdmin { get; set; }
     }
 }

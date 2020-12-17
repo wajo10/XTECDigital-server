@@ -66,6 +66,74 @@ namespace XTecDigital_Server.Controllers
             return respuesta[0];
         }
 
+        [Route("verSemestres")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public List<Object> verSemestres()
+        {
+            List<Object> semestres = new List<Object>();
+            //Connect to database
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            string insertQuery = "verSemestres";
+            SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            SqlDataReader dr = cmd.ExecuteReader();
+            try
+            {
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
+
+                     };
+                semestres.Add(response);
+                while (dr.Read())
+                {
+                    var jsons = new[]
+                    {
+                        new {
+                            ano = dr[1].ToString(),
+                            periodo = dr[2].ToString(),
+                            cedulaAdmin = dr[3].ToString(),
+                        }
+
+                     };
+                    Console.WriteLine(jsons);
+                    semestres.Add(jsons);
+                }
+
+            }
+            catch (Exception e)
+            {
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                semestres.Add(response);
+
+            }
+
+            List<object> retornar = new List<object>();
+            for (var x = 0; x < semestres.Count; x++)
+            {
+                var tempList = (IList<object>)semestres[x];
+                retornar.Add(tempList[0]);
+            }
+            conn.Close();
+            return retornar;
+
+        }
+
 
 
 
