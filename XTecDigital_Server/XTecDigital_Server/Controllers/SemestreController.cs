@@ -6,6 +6,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using XTecDigital_Server.Models;
 
 
@@ -135,6 +137,129 @@ namespace XTecDigital_Server.Controllers
         }
 
 
+        [Route("crearSemestreExcel")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public void crearSemestreExcel()
+        {
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            string insertQuery = "crearSemestreExcel";
+            SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            List<Object> respuesta = new List<Object>();
+            try
+            {
+                cmd.ExecuteNonQuery();
+                
+            }
+            catch (Exception e)
+            {
+                string[] separatingStrings = { "\r" };
+                Debug.WriteLine(e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]);
+            }
+            conn.Close();
+
+
+
+            agregarProfeMongoExcel();
+        }
+
+
+        
+
+
+
+
+        public void agregarProfeMongoExcel()
+        {
+            List<Object> cursos = new List<Object>();
+            Curso usuarioCarrera = new Curso();
+            //Connect to database
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            string insertQuery = "obtenerProfesorExcel";
+            SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            SqlDataReader dr = cmd.ExecuteReader();
+            try
+            {
+
+                while (dr.Read())
+                {
+                    var connectionString = "mongodb+srv://admin:admin@usuarios.ozlkz.mongodb.net/Usuarios?retryWrites=true&w=majority";
+                    var mongoClient = new MongoClient(connectionString);
+                    var dataBase = mongoClient.GetDatabase("Usuarios");
+                    var collection = dataBase.GetCollection<BsonDocument>("profesores");
+                    var document = new BsonDocument
+                                                        {
+                                                            { "cedula", dr[0].ToString() },
+                                                            { "nombre", dr[1].ToString() },
+                                                            { "apellido", dr[2].ToString() },
+                                                            { "apellido1", dr[2].ToString() },
+                                                        };
+                    collection.InsertOne(document);
+                }
+
+            }
+            catch (Exception e)
+            {
+                string[] separatingStrings = { "\r" };
+                Debug.WriteLine(e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]);
+            }
+            conn.Close();
+        }
+
+
+        public void agregarEstudianteMongoExcel()
+        {
+            List<Object> cursos = new List<Object>();
+            Curso usuarioCarrera = new Curso();
+            //Connect to database
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            string insertQuery = "obtenerEstudiantesExcel";
+            SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            SqlDataReader dr = cmd.ExecuteReader();
+            try
+            {
+
+                while (dr.Read())
+                {
+                    var connectionString = "mongodb+srv://admin:admin@usuarios.ozlkz.mongodb.net/Usuarios?retryWrites=true&w=majority";
+                    var mongoClient = new MongoClient(connectionString);
+                    var dataBase = mongoClient.GetDatabase("Usuarios");
+                    var collection = dataBase.GetCollection<BsonDocument>("estudiantes");
+                    var document = new BsonDocument
+                                                        {
+                                                            { "carnet", dr[0].ToString() },
+                                                            { "nombre", dr[1].ToString() },
+                                                            { "apellido", dr[2].ToString() },
+                                                            { "apellido1", dr[2].ToString() },
+                                                        };
+                    collection.InsertOne(document);
+                }
+
+            }
+            catch (Exception e)
+            {
+                string[] separatingStrings = { "\r" };
+                Debug.WriteLine(e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]);
+            }
+            conn.Close();
+
+        }
+
+
+        [Route("agregarUsuariosMongoExcel")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public void agregarUsuariosMongoExcel()
+        {
+            agregarProfeMongoExcel();
+            agregarEstudianteMongoExcel();
+        }
 
 
 

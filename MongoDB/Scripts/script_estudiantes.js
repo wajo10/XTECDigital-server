@@ -42,10 +42,10 @@ module.exports.main = function mainEstudiantes(){
     return dropCollection(MongoClient, url)
     .then( function() {
         return createCollection(MongoClient, url);
-    }) 
-    .then( function() {
+    }); 
+    /*.then( function() {
         return fillStudents(MongoClient, url, estudiantes);
-    });
+    });*/
 
     
 

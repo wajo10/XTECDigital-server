@@ -25,7 +25,6 @@ Begin
 INSERT INTO Administrador values (@cedula);
 End;
 Go
-Select * from Curso
 
 --*******************************ADMINISTRADOR******************************************
 --Crear curso
@@ -375,13 +374,14 @@ END;
 GO
 
 --Obtiene los profesores y sus datos del excel
-CREATE OR ALTER PROCEDURE obtenerEstudiantesExcel
+CREATE OR ALTER PROCEDURE obtenerProfesorExcel
 AS
 BEGIN
 select IdProfesor, NombreProfesor, ApellidoProfesor,ApellidoProfesor2 from  Data$ where IdProfesor != 'NULL' 
 group by IdProfesor, NombreProfesor, ApellidoProfesor, ApellidoProfesor2
 END;
 GO
+
 
 --........................................................TRIGGERS........................................................
 

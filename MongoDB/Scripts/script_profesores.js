@@ -38,10 +38,10 @@ module.exports.main = function mainProfesores(){
     return dropCollection(MongoClient, url)
     .then( function() {
         return createCollection(MongoClient, url);
-    }) 
-    .then( function() {
+    }); 
+    /*.then( function() {
         return fillSteachers(MongoClient, url, profesores);
-    });
+    });*/
 
 }
 
