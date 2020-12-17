@@ -57,6 +57,49 @@ BEGIN
 END;
 GO
 
+--Ver todos los cursos de un semestre
+CREATE OR ALTER PROCEDURE verCursosSemestre @ano int, @periodo varchar(10)
+AS
+BEGIN
+	DECLARE @idSemestre int = (select idSemestre from Semestre where ano = @ano and periodo = @periodo);
+	SELECT  p.cedulaProfesor, c.codigo, g.numeroGrupo from Semestre as s 
+	inner join CursosPorSemestre as cs on s.idSemestre = cs.idSemestre
+	inner join Curso as c on c.codigo = cs.codigoCurso
+	inner join Grupo as g on c.codigo = g.codigoCurso
+	inner join ProfesoresGrupo as p on g.idGrupo = p.idGrupo
+	where s.idSemestre = @idSemestre;
+END;
+GO
+
+--Permite ver los estudiantes de un grupo de un semestre y curso especifico
+CREATE OR ALTER PROCEDURE verEstudiantesSemestre @ano int, @periodo varchar(10), @grupo int, @codigoCurso varchar (10)
+AS
+BEGIN
+	DECLARE @idSemestre int = (select idSemestre from Semestre where ano = @ano and periodo = @periodo);
+	SELECT  e.carnetEstudiante from Semestre as s 
+	inner join CursosPorSemestre as cs on s.idSemestre = cs.idSemestre
+	inner join Curso as c on c.codigo = cs.codigoCurso
+	inner join Grupo as g on c.codigo = g.codigoCurso
+	inner join EstudiantesGrupo as e on g.idGrupo = e.idGrupo
+	where s.idSemestre = @idSemestre and g.numeroGrupo = @grupo and g.codigoCurso = @codigoCurso;
+END;
+GO
+
+--Permite ver los profesores de un grupo de un semestre y curso especifico
+CREATE OR ALTER PROCEDURE verProfesorSemestre @ano int, @periodo varchar(10), @grupo int, @codigoCurso varchar (10)
+AS
+BEGIN
+	DECLARE @idSemestre int = (select idSemestre from Semestre where ano = @ano and periodo = @periodo);
+	SELECT  p.cedulaProfesor from Semestre as s 
+	inner join CursosPorSemestre as cs on s.idSemestre = cs.idSemestre
+	inner join Curso as c on c.codigo = cs.codigoCurso
+	inner join Grupo as g on c.codigo = g.codigoCurso
+	inner join ProfesoresGrupo as p on g.idGrupo = p.idGrupo
+	where s.idSemestre = @idSemestre and g.numeroGrupo = @grupo and g.codigoCurso = @codigoCurso;
+END;
+GO
+
+
 --Habilitar o deshabilitar un curso
 CREATE OR ALTER PROCEDURE habilitar_deshabilitarCurso @codigo varchar(50)
 AS
@@ -69,20 +112,27 @@ BEGIN
 END;
 GO
 
+--Agrega un curso existente al semestre indicado
 CREATE OR ALTER PROCEDURE agregarCursoSemestre @codigoCurso varchar (20), @anoSemestre int, @periodoSemestre varchar
 AS
 BEGIN
 	IF ((select habilitado from Curso where codigo = @codigoCurso) = 1)
 	BEGIN
-		DECLARE @idSem int = (select idSemestre from Semestre where ano = @anoSemestre and periodo = @periodoSemestre);
-		insert into CursosPorSemestre values (@idSem, @codigoCurso);
+		If exists(select * from CursosPorSemestre where codigoCurso = @codigoCurso)
+		BEGIN
+			RAISERROR ('El curso que intenta agregar ya fue agregado previamente',16,1);
+		END;
+		Else
+		BEGIN
+			DECLARE @idSem int = (select idSemestre from Semestre where ano = @anoSemestre and periodo = @periodoSemestre);
+			insert into CursosPorSemestre values (@idSem, @codigoCurso);
+		END;
 	END;
-	Else if ((select habilitado from Curso where codigo = @codigoCurso) = 0)
-		Begin
+	ELSE
+	Begin
 		RAISERROR ('El curso que desea agregar al semestre no se encuentra habilitado',16,1);
 	End;
-	Else
-	RAISERROR ('El curso que intenta agregar ya fue agregado previamente',16,1);
+
 END;
 GO
 
@@ -176,18 +226,18 @@ BEGIN
 END;
 GO
 
---Crear Evaluacion **ARREGLAR EL METODO PARA AGREGAR ESTUDIANTES CUANDO LA EVALUACION NO ES GRUPAL
+--Crear Evaluacion
 CREATE OR ALTER PROCEDURE crearEvaluacion @grupal int, @nombre varchar(50), @porcentaje decimal(5,2), @fechaInicio datetime, @fechaFin datetime,
 @archivo varchar(MAX), @rubro varchar(50), @codigoCurso varchar(20), @numeroGrupo int
 AS
 BEGIN
 	DECLARE @idGrup int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
-	DECLARE @idRubro int = (select idRubro from Rubros where rubro = @rubro and idGrupo = @idGrup);
+	DECLARE @idRubro int = (select idRubro from Rubros where idGrupo = @idGrup and rubro = @rubro);
 	insert into Evaluaciones (grupal, nombre, porcentaje, fechaInicio, fechaFin, archivo, idRubro)
 	values (@grupal, @nombre, @porcentaje, @fechaInicio, @fechaFin,  @archivo, @idRubro);
-	DECLARE @idEva int = (select idEvaluacion from Evaluaciones where idRubro = @idRubro);
 	IF (@grupal = 0)
 	BEGIN
+		DECLARE @idEva int = (select idEvaluacion from Evaluaciones where idRubro = @idRubro and nombre = @nombre);
 		insert into EvaluacionesEstudiantes (carnet, idEvaluacion) 
 		select eg.carnetEstudiante, e.idEvaluacion from EstudiantesGrupo as eg
 		inner join Grupo as g on eg.idGrupo = g.idGrupo
@@ -213,7 +263,19 @@ GO
 CREATE OR ALTER PROCEDURE crearGrupo @codigoCurso varchar(20), @numeroGrupo int
 AS
 BEGIN
-	insert into Grupo (codigoCurso, numeroGrupo) values (@codigoCurso, @numeroGrupo);
+	IF EXISTS (select * from CursosPorSemestre where codigoCurso = @codigoCurso)
+		BEGIN
+			insert into Grupo (codigoCurso, numeroGrupo) values (@codigoCurso, @numeroGrupo);
+			/*Execute crearCarpeta @nombre = 'Presentaciones', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
+			Execute crearCarpeta @nombre = 'Quices', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
+			Execute crearCarpeta @nombre = 'Examenes', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
+			Execute crearCarpeta @nombre = 'Proyectos', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
+			Execute crearRubro @rubro = 'Quices', @porcentaje = 30, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
+			Execute crearRubro @rubro = 'Examenes', @porcentaje = 30, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
+			Execute crearRubro @rubro = 'Proyectos', @porcentaje = 40, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;*/
+		END;
+	ELSE
+		RAISERROR ('El curso al que intenta agregarle un grupo no existe',16,1);
 END;
 GO
 
@@ -244,7 +306,82 @@ BEGIN
 	insert into EstudiantesGrupo values (@carnet, @idGrupo);
 END;
 GO
---Crear semestre cargando tablas de excel a una tabla temporal y luego ejecutar un procedimiento almacenado
+
+--PROCEDURE PARA INICIALIZAR SEMESTRE EN BASE A LA TABLA DE EXCEL
+CREATE OR ALTER PROCEDURE crearSemestreExcel
+AS
+BEGIN
+	DECLARE @anio int = (select top 1 ano from Data$);
+	DECLARE @period int = (select top 1 Semestre from Data$);
+	--Crea el semestre
+	execute crearSemestre @ano = @anio, @periodo = @period, @cedulaAdmin = 0;
+
+	--Crea los cursos
+	insert into Curso (codigo, nombre) select idCurso, NombreCurso from Data$ where IdCurso != 'NULL' group by IdCurso, NombreCurso;
+
+	--Asigna los cursos al semestre
+	insert into CursosPorSemestre select s.idSemestre, c.codigo from Curso as c inner join Data$ as d on c.codigo = d.IdCurso
+										inner join Semestre as s on s.ano = d.Ano and s.periodo = d.Semestre
+										group by s.idSemestre, c.codigo;
+
+	--Crea los grupos de los estudiantes
+	insert into Grupo (codigoCurso, numeroGrupo) select idCurso, Grupo from Data$ where IdCurso != 'NULL' group by idCurso, grupo;
+
+	--Crea las carpetas y evaluaciones por defecto de los grupos
+	Declare db_cursor CURSOR for select idCurso, Grupo from Data$ where IdCurso != 'NULL' group by idCurso, grupo;
+	DECLARE @cod varchar(15);
+	DECLARE @num int;
+	OPEN db_cursor;
+	FETCH NEXT FROM db_cursor into @cod, @num
+	While @@FETCH_STATUS = 0
+	BEGIN
+		DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @cod and numeroGrupo = @num);
+		insert into Carpetas (nombre,idGrupo) values ('Presentaciones', @idGrupo);
+		insert into Carpetas (nombre,idGrupo) values ('Quices', @idGrupo);
+		insert into Carpetas (nombre,idGrupo) values ('Examenes', @idGrupo);
+		insert into Carpetas (nombre,idGrupo) values ('Proyectos', @idGrupo);
+		insert into Rubros (rubro,porcentaje, idGrupo) values ('Quices', 30, @idGrupo);
+		insert into Rubros (rubro,porcentaje, idGrupo) values ('Examenes', 30, @idGrupo);
+		insert into Rubros (rubro,porcentaje, idGrupo) values ('Proyectos', 40, @idGrupo);
+		FETCH NEXT FROM db_cursor INTO @cod, @num;
+	END;
+	CLOSE db_cursor;
+	DEALLOCATE db_cursor;
+
+	--Agrega a los profesores 
+	insert into Profesor select idProfesor from Data$ where idProfesor != 'NULL' group by idProfesor;
+
+	--Agrega a los profesores a los grupos correspondientes
+	insert into ProfesoresGrupo select g.idGrupo, d.idProfesor from Data$ as d inner join Profesor as p on d.IdProfesor = p.cedula
+								inner join Grupo as g on g.codigoCurso = d.IdCurso and g.numeroGrupo = d.Grupo
+								group by d.IdProfesor, d.Grupo, g.idGrupo;
+	
+	--Agrega a los estudiantes
+	insert into Estudiantes select carnet from Data$ where Carnet != 'NULL' group by Carnet;
+
+	--Agrega los estudiantes a los grupos correspondientes
+	insert into EstudiantesGrupo select d.Carnet, g.idGrupo from Estudiantes as e inner join Data$ as d on d.Carnet = e.carnet
+									inner join Grupo as g on g.codigoCurso = d.IdCurso and g.numeroGrupo = d.Grupo
+									group by d.carnet, g.idGrupo;
+END;
+GO
+
+--Obtiene los estudiantes y sus nombres del excel
+CREATE OR ALTER PROCEDURE obtenerEstudiantesExcel
+AS
+BEGIN
+select Carnet, Nombre, Apellido1,Apellido2 from  Data$ where Carnet != 'NULL' group by Carnet, Nombre, Apellido1, Apellido2
+END;
+GO
+
+--Obtiene los profesores y sus datos del excel
+CREATE OR ALTER PROCEDURE obtenerEstudiantesExcel
+AS
+BEGIN
+select IdProfesor, NombreProfesor, ApellidoProfesor,ApellidoProfesor2 from  Data$ where IdProfesor != 'NULL' 
+group by IdProfesor, NombreProfesor, ApellidoProfesor, ApellidoProfesor2
+END;
+GO
 
 --........................................................TRIGGERS........................................................
 
@@ -262,14 +399,21 @@ Go
 
 --Valida que al crear una evaluacion no se le pueda asignar un porcentaje mayor al del rubro al que corresponde
 Create or Alter Trigger tr_verificarPorcentajeEvaluacion on Evaluaciones
-for insert
+for insert, update
 AS
 BEGIN
 	DECLARE @porcEv decimal (5,2) = (select porcentaje from inserted);
 	DECLARE @porcRub decimal (5,2) = (select porcentaje from Rubros where idRubro = (select idRubro from inserted));
+	DECLARE @porcTot decimal (5,2) = (select sum (porcentaje) from Evaluaciones where idRubro = (select idRubro from inserted));
 	IF (@porcEv > @porcRub)
-		BEGIN
+	BEGIN
 		RAISERROR ('El porcentaje de la evaluacion no puede ser mayor al del rubro al que pertenece',16,1);
+		ROLLBACK TRANSACTION;
+		Return
+	END;
+	ELSE IF(@porcTot > @porcRub)
+	BEGIN
+		RAISERROR ('El porcentaje total de las evaluaciones excede el porcentaje del rubro',16,1);
 		ROLLBACK TRANSACTION;
 		Return
 	END;
@@ -488,7 +632,6 @@ BEGIN
 END;
 GO
 
-
 --Editar evaluaciones de un grupo
 CREATE OR ALTER PROCEDURE editarEvaluacion @nombreEvaluacion varchar (50), @codigoCurso varchar(10), @numeroGrupo int, @rubro varchar(50), 
 @nuevoNombre varchar (50), @nuevaFechaInicio datetime, @nuevaFechaFin datetime, @nuevoPorcentaje decimal(5,2)
@@ -582,10 +725,18 @@ GO
 --VIEW QUE PERMITE VISUALIZAR LAS NOTAS DE LOS ESTUDIANTES
 CREATE OR ALTER VIEW v_notasEstudiantes
 AS
-	SELECT g.idGrupo, ee.carnet, e.nombre nombreEvaluacion, r.rubro, ee.nota notaObtenida, ((ee.nota*e.porcentaje)/100) porcentajeObtenido,e.porcentaje porcentajeEvaluacion from EvaluacionesEstudiantes as ee
+	SELECT ee.carnet, e.nombre nombreEvaluacion, g.numeroGrupo, g.codigoCurso,r.rubro, ee.nota notaObtenida,
+	((ee.nota*e.porcentaje)/100) porcentajeObtenido,e.porcentaje porcentajeEvaluacion
+	from EvaluacionesEstudiantes as ee
 	join Evaluaciones as e on ee.idEvaluacion = e.idEvaluacion
 	join Rubros as r on r.idRubro = e.idRubro
 	join Grupo as g on g.idGrupo = r.idGrupo;
+GO
+
+--View que muestra las notas finales de un estudiante en
+CREATE OR ALTER VIEW v_notasFinales
+AS
+select carnet, codigoCurso, sum (porcentajeObtenido) notaFinal from v_notasEstudiantes group by carnet, codigoCurso
 GO
 
 --View que permite ver los estudiantes matriculados en todos los cursos
@@ -597,28 +748,22 @@ AS
 	group by codigo, carnetEstudiante
 GO
 
---Permite ver los estudiantes matriculados en un curso en especifico
-CREATE OR ALTER PROCEDURE verEstudiantesGrupo @codigoCurso varchar (20) AS
+--Permite ver el reporte de los estudiantes matriculados en un curso en especifico
+CREATE OR ALTER PROCEDURE verEstudiantesCurso @codigoCurso varchar (20) AS
 BEGIN
 select * from v_estudiantesCursos where codigo = @codigoCurso
 END;
 GO
 
-
---Permite ver las notas de los estudiantes segun el grupo al que pertenezca
+--Permite ver el reporte de notas de los estudiantes segun el grupo al que pertenezca
 CREATE OR ALTER PROCEDURE verNotasGrupo @codigoCurso varchar (15), @numeroGrupo int
 AS
 BEGIN
-	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
-	select carnet, nombreEvaluacion, rubro, notaObtenida, porcentajeObtenido, porcentajeEvaluacion from v_notasEstudiantes 
-	where idGrupo = @idGrupo;
+	select ne.carnet, nombreEvaluacion, rubro, notaObtenida, porcentajeObtenido, porcentajeEvaluacion, nf.notaFinal
+	from v_notasEstudiantes as ne join v_notasFinales as nf on ne.carnet = nf.carnet
+	where ne.codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo;
 END;
 GO
-
-
---NECESITO UNIR ESTO CON LO DE FABIAN
---Reporte de notas *VISTA QUE DETALLE TODAS LAS NOTAS Y CALCULE EL VALOR OBTENIDO PARA CADA RUBRO, AS� COMO LA NOTA FINAL CURSO Y CREAR PDF
---Reporte de estudiantes *VISTA CON TODA LA INFORMACION DE LOS ESTUDIANTES DE UN GRUPO Y CREAR PDF
 
 --........................................................TRIGGERS........................................................
 --Asigna la misma calificacion a todos los miembros de una evaluacion grupal
@@ -772,6 +917,7 @@ END;
 GO
 --........................................................TRIGGERS........................................................
 
+
 --*******************************PROFESOR******************************************
 
 
@@ -801,11 +947,12 @@ CREATE OR ALTER PROCEDURE verNotasEstudianteGrupo @carnet varchar(15), @codigoCu
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
-	select carnet, nombreEvaluacion, rubro, notaObtenida, porcentajeObtenido, porcentajeEvaluacion from v_notasEstudiantes 
-	where idGrupo = @idGrupo and carnet = @carnet;
+	select carnet, nombreEvaluacion, rubro, notaObtenida, porcentajeObtenido, porcentajeEvaluacion,
+	(select sum (porcentajeObtenido) from v_notasEstudiantes where carnet = @carnet and codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo) notaFinal
+	from v_notasEstudiantes 
+	where codigoCurso = @codigoCurso and carnet = @carnet and numeroGrupo = @numeroGrupo;
 END;
 GO
-
 
 --Ver las noticias de un grupo ordenadas por fecha
 CREATE OR ALTER PROCEDURE verNoticiasGrupo @codigoCurso varchar(10), @numeroGrupo int
@@ -816,96 +963,5 @@ BEGIN
 END;
 GO
 
---........................................................TRIGGERS........................................................
-
---........................................................TRIGGERS........................................................
-/*
-CREATE OR ALTER PROCEDURE prueba
-AS
-BEGIN
-	DECLARE @idCurso varchar(20);
-	DECLARE @Grupo int;
-	DECLARE pruebaCursor cursor for select idCurso, Grupo from Data$ where IdCurso != 'NULL' group by idCurso, grupo;
-	OPEN pruebaCursor fetch next from pruebaCursor into @idCurso, @Grupo;
-	While @@FETCH_STATUS = 0
-	BEGIN
-		insert into Grupo (codigoCurso,numeroGrupo) values (@idCurso,@Grupo)
-		Execute crearCarpeta @nombre = 'Presentaciones', @codigoCurso = @idCurso , @numeroGrupo = @Grupo;
-		Execute crearCarpeta @nombre = 'Quices', @codigoCurso = @idCurso , @numeroGrupo = @Grupo;
-		Execute crearCarpeta @nombre = 'Examenes', @codigoCurso = @idCurso , @numeroGrupo = @Grupo;
-		Execute crearCarpeta @nombre = 'Proyectos', @codigoCurso = @idCurso , @numeroGrupo = @Grupo;
-		Execute crearRubro @rubro = 'Quices', @porcentaje = 30, @codigoCurso = @idCurso, @numeroGrupo = @Grupo;
-		Execute crearRubro @rubro = 'Examenes', @porcentaje = 30, @codigoCurso = @idCurso, @numeroGrupo = @Grupo;
-		Execute crearRubro @rubro = 'Proyectos', @porcentaje = 40, @codigoCurso = @idCurso, @numeroGrupo = @Grupo;
-	END;
-	CLOSE pruebaCursor;
-END;
-GO
-*/
-
---PROCEDURE PARA INICIALIZAR SEMESTRE EN BASE A LA TABLA DE EXCEL
-CREATE OR ALTER PROCEDURE crearSemestreExcel
-AS
-BEGIN
-	DECLARE @anio int = (select top 1 ano from Data$);
-	DECLARE @period int = (select top 1 Semestre from Data$);
-	--Crea el semestre
-	execute crearSemestre @ano = @anio, @periodo = @period, @cedulaAdmin = 0;
-
-	--Crea los cursos
-	insert into Curso (codigo, nombre) select idCurso, NombreCurso from Data$ where IdCurso != 'NULL' group by IdCurso, NombreCurso;
-
-	--Asigna los cursos al semestre
-	insert into CursosPorSemestre select s.idSemestre, c.codigo from Curso as c inner join Data$ as d on c.codigo = d.IdCurso
-										inner join Semestre as s on s.ano = d.Ano and s.periodo = d.Semestre
-										group by s.idSemestre, c.codigo;
-	--Crea los grupos
-	/*
-	execute prueba;
-	select * from Grupo
-	select * from Carpetas
-	delete Grupo
-	delete Carpetas
-	delete Rubros
-	*/
-
-	insert into Grupo (codigoCurso, numeroGrupo) select idCurso, Grupo from Data$ where IdCurso != 'NULL' group by idCurso, grupo;
-	
-	--Agrega a los profesores *FALTA LLAMAR EL METODO QUE LOS AGREGUE A LA BASE DE MONGO
-	insert into Profesor select idProfesor from Data$ where idProfesor != 'NULL' group by idProfesor;
-
-	--Agrega a los profesores a los grupos correspondientes
-	insert into ProfesoresGrupo select g.idGrupo, d.idProfesor from Data$ as d inner join Profesor as p on d.IdProfesor = p.cedula
-								inner join Grupo as g on g.codigoCurso = d.IdCurso and g.numeroGrupo = d.Grupo
-								group by d.IdProfesor, d.Grupo, g.idGrupo;
-	
-	--Agrega a los estudiantes *FALTA AGREGARLOS A LA BASE DE MONGO
-	insert into Estudiantes select carnet from Data$ where Carnet != 'NULL' group by Carnet;
-
-	--Agrega los estudiantes a los grupos correspondientes
-	insert into EstudiantesGrupo select d.Carnet, g.idGrupo from Estudiantes as e inner join Data$ as d on d.Carnet = e.carnet
-									inner join Grupo as g on g.codigoCurso = d.IdCurso and g.numeroGrupo = d.Grupo
-									group by d.carnet, g.idGrupo;
-END;
-GO
 
 
-
---(@Codigo, @nombre, @carrera, @creditos, @habilitado, @cedulaAdmin); select * from grupo delete grupo
-/*
-
-select * from carpetas
-select * from Data$; select * from EstudiantesGrupo
-
-select idProfesor from Data$ where idProfesor != 'NULL' group by idProfesor
-
-select idCurso, Grupo from Data$ where IdCurso != 'NULL' group by idCurso, grupo;
-
-select idCurso, NombreCurso from Data$ where IdCurso != 'NULL' group by IdCurso, NombreCurso;
-
-select carnet, nombre, apellido1, apellido2 from Data$ where Carnet != 'Null' group by Carnet, Nombre, Apellido1, Apellido2 order by Nombre
-
-select d.idProfesor, g.idGrupo from Data$ as d inner join Profesor as p on d.IdProfesor = p.cedula
-inner join Grupo as g on g.codigoCurso = d.IdCurso and g.numeroGrupo = d.Grupo
-group by d.IdProfesor, d.Grupo, g.idGrupo;
-*/
