@@ -17,6 +17,7 @@ create table Semestre (
 	primary key (idSemestre)
 );
 
+
 create table Curso (
 	codigo varchar(20) not null,
 	nombre varchar(50) not null unique,
