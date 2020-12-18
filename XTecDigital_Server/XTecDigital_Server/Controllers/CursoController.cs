@@ -348,10 +348,12 @@ namespace XTecDigital_Server.Controllers
         {
             SqlConnection conn = new SqlConnection(serverKey);
             conn.Open();
-            string insertQuery = "habilitar_deshabilitarCurso";
+            string insertQuery = "agregarCursoSemestre";
             SqlCommand cmd = new SqlCommand(insertQuery, conn);
             cmd.CommandType = System.Data.CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@codigoCurso", curso.codigoCurso);
+            cmd.Parameters.AddWithValue("@anoSemestre", curso.ano);
+            cmd.Parameters.AddWithValue("@periodoSemestre", curso.periodo);
             List<Object> respuesta = new List<Object>();
             try
             {

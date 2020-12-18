@@ -30,6 +30,8 @@ namespace XTecDigital_Server.Controllers
             cmd.CommandType = System.Data.CommandType.StoredProcedure;
             cmd.Parameters.AddWithValue("@codigoCurso", grupo.codigoCurso);
             cmd.Parameters.AddWithValue("@numeroGrupo", grupo.numeroGrupo);
+            cmd.Parameters.AddWithValue("@ano", grupo.ano);
+            cmd.Parameters.AddWithValue("@periodo", grupo.periodo);
             List<Object> respuesta = new List<Object>();
             try
             {

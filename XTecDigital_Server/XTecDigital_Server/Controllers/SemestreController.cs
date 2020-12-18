@@ -296,9 +296,8 @@ namespace XTecDigital_Server.Controllers
                     var jsons = new[]
                     {
                         new {
-                            cedulaProfesor = dr[0].ToString(),
-                            codigo = dr[1].ToString(),
-                            numeroGrupo = (int)dr[2],
+                            codigo = dr[0].ToString(),
+                            numeroGrupo = (int)dr[1],
                         }
 
                      };

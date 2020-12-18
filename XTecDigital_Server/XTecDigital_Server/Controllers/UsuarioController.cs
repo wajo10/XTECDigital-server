@@ -403,5 +403,90 @@ namespace XTecDigital_Server.Controllers
             cmd.ExecuteNonQuery();
             conn.Close();
         }
+
+
+
+
+
+
+        [Route("verCursosEstudiante")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public List<Object> verCursosEstudiante(Usuario usuario)
+        {
+            List<Object> cursos = new List<Object>();
+            Curso usuarioCarrera = new Curso();
+            //Connect to database
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            string insertQuery = "verCursosEstudiante";
+            SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@carnet", usuario.carnet);
+            try
+            {
+                SqlDataReader dr = cmd.ExecuteReader();
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
+
+                     };
+                cursos.Add(response);
+                while (dr.Read())
+                {
+
+                    var jsons = new[]
+                    {
+                        new {
+                            grupo = (int)dr[0],
+                            nombre = dr[1].ToString(),
+                        }
+
+                     };
+                    Console.WriteLine(jsons);
+                    cursos.Add(jsons);
+                }
+
+            }
+            catch (Exception e)
+            {
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                cursos.Add(response);
+
+            }
+
+            List<object> retornar = new List<object>();
+            for (var x = 0; x < cursos.Count; x++)
+            {
+                var tempList = (IList<object>)cursos[x];
+                retornar.Add(tempList[0]);
+            }
+            conn.Close();
+            return retornar;
+
+        }
+
+
+
+
+
+
+
+
+
+
     }
 }

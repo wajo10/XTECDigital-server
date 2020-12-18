@@ -65,22 +65,22 @@ END;
 GO
 
 
-
+-- Execute verCursosSemestre @ano = 2021, @periodo = '1'
 --Ver todos los cursos de un semestre
 CREATE OR ALTER PROCEDURE verCursosSemestre @ano int, @periodo varchar(10)
 AS
 BEGIN
 	DECLARE @idSemestre int = (select idSemestre from Semestre where ano = @ano and periodo = @periodo);
-	SELECT  p.cedulaProfesor, c.codigo, g.numeroGrupo from Semestre as s 
+	SELECT c.codigo, g.numeroGrupo from Semestre as s 
 	inner join CursosPorSemestre as cs on s.idSemestre = cs.idSemestre
 	inner join Curso as c on c.codigo = cs.codigoCurso
 	inner join Grupo as g on c.codigo = g.codigoCurso
-	inner join ProfesoresGrupo as p on g.idGrupo = p.idGrupo
 	where s.idSemestre = @idSemestre;
 END;
 GO
-
-
+Execute verCursosSemestre @ano = 2021, @periodo = 'Verano'
+Execute agregarCursoSemestre @codigoCurso = 'PR1234', @anoSemestre = 2021, @periodoSemestre = 'Verano'
+Select * from CursosPorSemestre 
 
 
 --Permite ver los estudiantes de un grupo de un semestre y curso especifico
@@ -128,23 +128,23 @@ GO
 CREATE OR ALTER PROCEDURE agregarCursoSemestre @codigoCurso varchar (20), @anoSemestre int, @periodoSemestre varchar
 AS
 BEGIN
-	IF ((select habilitado from Curso where codigo = @codigoCurso) = 1)
-	BEGIN
-		If exists(select * from CursosPorSemestre where codigoCurso = @codigoCurso)
-		BEGIN
-			RAISERROR ('El curso que intenta agregar ya fue agregado previamente',16,1);
-		END;
-		Else
-		BEGIN
-			DECLARE @idSem int = (select idSemestre from Semestre where ano = @anoSemestre and periodo = @periodoSemestre);
-			insert into CursosPorSemestre values (@idSem, @codigoCurso);
-		END;
-	END;
-	ELSE
-	Begin
-		RAISERROR ('El curso que desea agregar al semestre no se encuentra habilitado',16,1);
-	End;
-
+IF ((select habilitado from Curso where codigo = @codigoCurso) = 1)
+BEGIN
+DECLARE @idSemestre int = (select idSemestre from Semestre where ano = @anoSemestre and periodo = @periodoSemestre);
+If exists(select * from CursosPorSemestre where codigoCurso = @codigoCurso and idSemestre = @idSemestre )
+BEGIN
+RAISERROR ('El curso que intenta agregar ya fue agregado previamente',16,1);
+END;
+Else
+BEGIN
+DECLARE @idSem int = (select idSemestre from Semestre where ano = @anoSemestre and periodo = @periodoSemestre);
+insert into CursosPorSemestre values (@idSem, @codigoCurso);
+END;
+END;
+ELSE
+Begin
+RAISERROR ('El curso que desea agregar al semestre no se encuentra habilitado',16,1);
+End;
 END;
 GO
 
@@ -271,25 +271,25 @@ END;
 GO
 
 --Establecer los grupos del curso y le crea las carpetas predeterminadas
-CREATE OR ALTER PROCEDURE crearGrupo @codigoCurso varchar(20), @numeroGrupo int
+CREATE OR ALTER PROCEDURE crearGrupo @codigoCurso varchar(20), @numeroGrupo int, @ano int, @periodo varchar(10)
 AS
 BEGIN
-	IF EXISTS (select * from CursosPorSemestre where codigoCurso = @codigoCurso)
-		BEGIN
-			insert into Grupo (codigoCurso, numeroGrupo) values (@codigoCurso, @numeroGrupo);
-			Execute crearCarpeta @nombre = 'Presentaciones', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
-			Execute crearCarpeta @nombre = 'Quices', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
-			Execute crearCarpeta @nombre = 'Examenes', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
-			Execute crearCarpeta @nombre = 'Proyectos', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
-			Execute crearRubro @rubro = 'Quices', @porcentaje = 30, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
-			Execute crearRubro @rubro = 'Examenes', @porcentaje = 30, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
-			Execute crearRubro @rubro = 'Proyectos', @porcentaje = 40, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
-		END;
-	ELSE
-		RAISERROR ('El curso al que intenta agregarle un grupo no existe',16,1);
+DECLARE @idSemestre int = (select idSemestre from Semestre where ano = @ano and periodo = @periodo);
+IF EXISTS (select * from CursosPorSemestre where idSemestre = @idSemestre and codigoCurso = @codigoCurso)
+BEGIN
+insert into Grupo (codigoCurso, numeroGrupo) values (@codigoCurso, @numeroGrupo);
+Execute crearCarpeta @nombre = 'Presentaciones', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
+Execute crearCarpeta @nombre = 'Quices', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
+Execute crearCarpeta @nombre = 'Examenes', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
+Execute crearCarpeta @nombre = 'Proyectos', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
+Execute crearRubro @rubro = 'Quices', @porcentaje = 30, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
+Execute crearRubro @rubro = 'Examenes', @porcentaje = 30, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
+Execute crearRubro @rubro = 'Proyectos', @porcentaje = 40, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
+END;
+ELSE
+RAISERROR ('El curso al que intenta agregarle un grupo no existe en este semestre',16,1);
 END;
 GO
-
 
 --Establecer los profesores del grupo.
 CREATE OR ALTER PROCEDURE asignarProfesorGrupo @codigoCurso varchar(10), @numeroGrupo int, @cedulaProfesor varchar(20)
