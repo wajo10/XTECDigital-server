@@ -448,19 +448,13 @@ BEGIN
 	ROLLBACK TRANSACTION;
 	Return
 END;
-IF ((select sum (porcentaje) from inserted where idGrupo = (select idGrupo from inserted)) > 100)
+IF ((select sum (porcentaje) from Rubros where idGrupo = (select idGrupo from inserted)) > 100)
 BEGIN
 	RAISERROR ('El porcentaje total de los rubros excede el 100',16,1);
 	ROLLBACK TRANSACTION;
 	Return
 END;
 Go
-
-/*
-select * from Rubros where idGrupo = 168
-update Rubros set porcentaje = 30 where idGrupo = 168 and rubro = 'Examenes'
-execute crearGrupo @codigoCurso = 'CE3101',@numeroGrupo = 10,@ano = 2021,@periodo = 1
-*/
 
 --Valida que no se puedan eliminar los rubros creados al inicializar el semestre
 Create or Alter Trigger tr_EliminarRubro on Rubros
