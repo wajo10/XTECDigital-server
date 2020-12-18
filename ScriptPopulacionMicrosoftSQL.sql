@@ -23,21 +23,14 @@ Execute agregarEstudiante @carnet = '645679896';
 Execute agregarEstudiante @carnet = '14453544';
 */
 
-Execute agregarEstudiante @carnet = '2018099536';
-Execute agregarEstudiante @carnet = '2018086985';
-Execute agregarEstudiante @carnet = '2018319178';
-Execute agregarEstudiante @carnet = '2018099304';
-
-
 --Creacion semestre
 Execute crearSemestre @ano = '2021', @periodo = 1, @cedulaAdmin = '11111';
-Select * from Curso
+
 --Creacion de cursos
 Execute crearCurso @Codigo = 'CE3101', @nombre = 'BASES DE DATOS', @carrera = 'INGENIERIA EN COMPUTADORES', @creditos = 4, @habilitado = 1, @cedulaAdmin = 11111;
 Execute crearCurso @Codigo = 'MA0101', @nombre = 'MATEMATICA GENERAL', @carrera = 'INGENIERIA EN COMPUTADORES', @creditos = 2, @habilitado = 1, @cedulaAdmin = 11111;
 Execute crearCurso @Codigo = 'EL2114', @nombre = 'CIRCUITOS CA', @carrera = 'INGENIERIA ELECTRONICA', @creditos = 4, @habilitado = 1, @cedulaAdmin = 11111;
 Execute crearCurso @Codigo = 'CE1010', @nombre = 'intro y taller', @carrera = 'INGENIERIA EN COMPUTADORES', @creditos = 4, @habilitado = 1, @cedulaAdmin = 11111;
-Execute crearCurso @Codigo = 'CE6969', @nombre = 'Mate discreta', @carrera = 'INGENIERIA EN COMPUTADORES', @creditos = 4, @habilitado = 1, @cedulaAdmin = 11111;
 
 --Creacion y asignacion de grupos
 Execute crearGrupo @codigoCurso = 'CE3101', @numeroGrupo = 1;
@@ -46,11 +39,7 @@ Execute crearGrupo @codigoCurso = 'MA0101', @numeroGrupo = 1;
 Execute crearGrupo @codigoCurso = 'MA0101', @numeroGrupo = 2;
 Execute crearGrupo @codigoCurso = 'MA0101', @numeroGrupo = 3;
 Execute crearGrupo @codigoCurso = 'EL2114', @numeroGrupo = 1;
-Execute crearGrupo @codigoCurso = 'CE1010', @numeroGrupo = 8;
 
-
-Execute crearGrupo @codigoCurso = 'CE6969', @numeroGrupo = 1;
-Execute crearGrupo @codigoCurso = 'CE420', @numeroGrupo = 1;
 --Asignacion de profesores a los grupos
 Execute asignarProfesorGrupo @codigoCurso = 'CE3101', @numeroGrupo = 1, @cedulaProfesor = '1234'; --Hay que cambiar la cedula por una que exista
 
@@ -65,16 +54,6 @@ Execute agregarEstudiantesGrupo @carnet = '453343', @codigoCurso = 'CE1010', @nu
 Execute agregarEstudiantesGrupo @carnet = '696969', @codigoCurso = 'CE1010', @numeroGrupo = 8;
 Execute agregarEstudiantesGrupo @carnet = '7524523', @codigoCurso = 'CE1010', @numeroGrupo = 8;
 
-
-Execute agregarEstudiantesGrupo @carnet = '453343', @codigoCurso = 'CE1010', @numeroGrupo = 8;
-Execute agregarEstudiantesGrupo @carnet = '696969', @codigoCurso = 'CE1010', @numeroGrupo = 8;
-Execute agregarEstudiantesGrupo @carnet = '7524523', @codigoCurso = 'CE1010', @numeroGrupo = 8;
-
-
-Execute agregarEstudiantesGrupo @carnet = '2018099536', @codigoCurso = 'CE6969', @numeroGrupo = 1;
-Execute agregarEstudiantesGrupo @carnet = '2018086985', @codigoCurso = 'CE6969', @numeroGrupo = 1;
-Execute agregarEstudiantesGrupo @carnet = '2018319178', @codigoCurso = 'CE6969', @numeroGrupo = 1;
-Execute agregarEstudiantesGrupo @carnet = '2018099304', @codigoCurso = 'CE6969', @numeroGrupo = 1;
 
 --Agregar estudiantes a una evaluacion
 select * from Grupo
@@ -110,6 +89,4 @@ execute revisarEvaluacion @carnet = '1010212', @idEvaluacion = 11, @nota = 92.35
 select * from Evaluaciones
 DBCC CHECKIDENT ('Evaluaciones', RESEED, 0) 
 select * from Carpetas
-
-select * from Curso
 */

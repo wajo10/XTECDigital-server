@@ -1,22 +1,17 @@
 --Validacion de profesores, administradores y estudiantes en el Log In
 CREATE OR ALTER PROCEDURE agregarProfesor @cedula varchar(20)
 AS
-Begin TRY
+Begin
 INSERT INTO Profesor values (@cedula);
-End TRY
-BEGIN CATCH  
-RAISERROR ('El profesor ya existe.',16,1);
-END CATCH
+End;
 Go
+
 
 CREATE OR ALTER PROCEDURE agregarEstudiante @carnet varchar(20)
 AS
-Begin TRY
+Begin
 INSERT INTO Estudiantes values (@carnet);
-End TRY
-BEGIN CATCH  
-RAISERROR ('El Estudiante ya existe.',16,1);
-END CATCH
+End;
 Go
 
 CREATE OR ALTER PROCEDURE agregarAdmin @cedula varchar(20)
@@ -25,6 +20,7 @@ Begin
 INSERT INTO Administrador values (@cedula);
 End;
 Go
+
 
 --*******************************ADMINISTRADOR******************************************
 --Crear curso
@@ -39,7 +35,6 @@ BEGIN
 	END CATCH
 END;
 GO
-
 
 --Ver todos los cursos que hay en la base de datos
 CREATE OR ALTER PROCEDURE verCursos
@@ -57,15 +52,6 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE verSemestres
-AS
-BEGIN
-	SELECT * FROM Semestre ORDER BY ano DESC;
-END;
-GO
-
-
--- Execute verCursosSemestre @ano = 2021, @periodo = '1'
 --Ver todos los cursos de un semestre
 CREATE OR ALTER PROCEDURE verCursosSemestre @ano int, @periodo varchar(10)
 AS
@@ -79,9 +65,6 @@ BEGIN
 	Group by c.codigo,g.numeroGrupo
 END;
 GO
-Execute verCursosSemestre @ano = 2021, @periodo = 'Verano'
-Execute agregarCursoSemestre @codigoCurso = 'PR1234', @anoSemestre = 2021, @periodoSemestre = 'Verano'
-Select * from CursosPorSemestre 
 
 
 --Permite ver los estudiantes de un grupo de un semestre y curso especifico
@@ -147,26 +130,16 @@ BEGIN
 		RAISERROR ('El curso que desea agregar al semestre no se encuentra habilitado',16,1);
 	End;
 END;
-Else
-BEGIN
-DECLARE @idSem int = (select idSemestre from Semestre where ano = @anoSemestre and periodo = @periodoSemestre);
-insert into CursosPorSemestre values (@idSem, @codigoCurso);
-END;
-END;
-ELSE
-Begin
-RAISERROR ('El curso que desea agregar al semestre no se encuentra habilitado',16,1);
-End;
-END;
 GO
 
 --Crea un semestre (1 para el primer semestre, 2 para el segundo semestre y V para el periodo de verano).  
-CREATE OR ALTER PROCEDURE crearSemestre @ano int, @periodo varchar(50), @cedulaAdmin varchar(50)
+CREATE OR ALTER PROCEDURE crearSemestre @ano int, @periodo int, @cedulaAdmin int
 AS
 Begin
 INSERT INTO Semestre (ano, periodo, cedulaAdmin) values (@ano, @periodo, @cedulaAdmin);
 End;
 Go
+
 --Crear carpetas
 CREATE OR ALTER PROCEDURE crearCarpeta @nombre varchar(50), @codigoCurso varchar(10), @numeroGrupo int
 AS
@@ -175,7 +148,6 @@ BEGIN
 	insert into Carpetas (nombre, idGrupo) values (@nombre, @idGrupo);
 END;
 GO
-
 
 --Eliminar carpetas
 CREATE OR ALTER PROCEDURE eliminarCarpeta @nombre varchar(50), @codigoCurso varchar(10), @numeroGrupo int
@@ -213,19 +185,6 @@ BEGIN
 END;
 GO
 
-/*
-execute crearDocumentos @nombreDocumento = 'documentoPrueba', @archivo = 'archivo prueba', @tamano = 1, 
-@nombreCarpeta = 'Presentaciones', @codigoCurso = 'CE3101', @numeroGrupo = 1, @tipoArchivo = '.txt'
-execute crearDocumentos @nombreDocumento = 'documento2', @archivo = 'archivo prueba', @tamano = 1, 
-@nombreCarpeta = 'Presentaciones', @codigoCurso = 'CE3101', @numeroGrupo = 1, @tipoArchivo = '.txt'
-
-execute eliminarDocumentos @nombreDocumento ='documentoPrueba', @nombreCarpeta = 'Presentaciones',
-@codigoCurso = 'CE3101', @numeroGrupo = 1
-
-select * from Documentos
-*/
-
-
 --Crear un rubro
 CREATE OR ALTER PROCEDURE crearRubro @rubro varchar(50), @porcentaje decimal(5,2), @codigoCurso varchar (30), @numeroGrupo int
 AS
@@ -234,7 +193,6 @@ BEGIN
 	insert into Rubros(rubro, porcentaje, idGrupo) values (@rubro, @porcentaje, @idGrupo);
 END;
 GO
-
 
 --Eliminar un rubro
 CREATE OR ALTER PROCEDURE eliminarRubro @rubro varchar(50), @codigoCurso varchar (30), @numeroGrupo int
@@ -300,9 +258,6 @@ BEGIN
 		END;
 	ELSE
 		RAISERROR ('El curso al que intenta agregarle un grupo no existe en este semestre',16,1);
-END;
-ELSE
-RAISERROR ('El curso al que intenta agregarle un grupo no existe en este semestre',16,1);
 END;
 GO
 
@@ -404,8 +359,8 @@ GO
 CREATE OR ALTER PROCEDURE obtenerProfesorExcel
 AS
 BEGIN
-select IdProfesor, NombreProfesor, ApellidoProfesor,ApellidoProfesor1 from  Data$ where IdProfesor != 'NULL' 
-group by IdProfesor, NombreProfesor, ApellidoProfesor, ApellidoProfesor1
+select IdProfesor, NombreProfesor, ApellidoProfesor,ApellidoProfesor2 from  Data$ where IdProfesor != 'NULL' 
+group by IdProfesor, NombreProfesor, ApellidoProfesor, ApellidoProfesor2
 END;
 GO
 
@@ -445,35 +400,6 @@ BEGIN
 	END;
 END;
 GO
-
-
---Si la evaluacion creada no es grupal, se la asigna a todos los estudiantes de un grupo
-CREATE OR ALTER TRIGGER tr_asignarEvaluacionGrupo on Evaluaciones
-for insert
-As
-If (select grupal from inserted) = 0
-Begin
-	Declare @idEvaluacion int = (select idEvaluacion from inserted);
-	Declare @idRubro int = (select idRubro from inserted);
-	Declare @idGrupo int = (select idGrupo from Rubros where idRubro = @idRubro);
-	insert into EvaluacionesEstudiantes (carnet, idEvaluacion) 
-	values ((select carnetEstudiante from EstudiantesGrupo where idGrupo = @idGrupo), @idEvaluacion);
-End;
-Go
-
---Si la evaluacion creada no es grupal, se la asigna a todos los estudiantes de un grupo
-CREATE OR ALTER TRIGGER tr_asignarEvaluacionGrupo on Evaluaciones
-for insert
-As
-If (select grupal from inserted) = 0
-Begin
-	Declare @idEvaluacion int = (select idEvaluacion from inserted);
-	Declare @idRubro int = (select idRubro from inserted);
-	Declare @idGrupo int = (select idGrupo from Rubros where idRubro = @idRubro);
-	insert into EvaluacionesEstudiantes (carnet, idEvaluacion) 
-	values ((select carnetEstudiante from EstudiantesGrupo where idGrupo = @idGrupo), @idEvaluacion);
-End;
-Go
 
 --Valida que la carpeta que se crea no exista en el mismo grupo
 Create or Alter Trigger tr_verificarCarpeta on Carpetas
@@ -980,22 +906,33 @@ BEGIN
 	where codigoCurso = @codigoCurso and carnet = @carnet and numeroGrupo = @numeroGrupo;
 END;
 GO
-
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0021',@idEvaluacion = 46, @numeroGrupoEvaluacion = 1
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0021',@idEvaluacion = 46, @numeroGrupoEvaluacion = 1
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0036',@idEvaluacion = 46, @numeroGrupoEvaluacion = 1
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0036',@idEvaluacion = 46, @numeroGrupoEvaluacion = 1
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0021',@idEvaluacion = 46, @numeroGrupoEvaluacion = 1
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0021',@idEvaluacion = 46, @numeroGrupoEvaluacion = 2
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0021',@idEvaluacion = 46, @numeroGrupoEvaluacion = 2
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0021',@idEvaluacion = 46, @numeroGrupoEvaluacion = 2
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0021',@idEvaluacion = 46, @numeroGrupoEvaluacion = 2
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0021',@idEvaluacion = 46, @numeroGrupoEvaluacion = 2
 --Ver las noticias de un grupo ordenadas por fecha
-
 /*
 execute revisarEvaluacion @carnet = '2019C0038',@idEvaluacion = 43 ,@nota = 85,@comentario = 'ComentarioGrupal',@nombreArch ='nombre prueba',
 @tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
 
-execute crearEvaluacion @grupal = 0, @nombre = 'Examen final',@porcentaje =  ,@fechaInicio = '2020-12-18 00:01:21.283',@fechaFin = '2020-12-19 00:01:21.283'
-,@archivo = 'archivoPrueba',@nombArch = 'archivo Prueba', @tipArch = 'Tipo archivo',@rubro = 'Quices',@codigoCurso = 'CE3101',@numeroGrupo = 1
+execute crearEvaluacion @grupal = 1, @nombre = 'Proyecto final',@porcentaje = 30 ,@fechaInicio = '2020-12-18 00:01:21.283',@fechaFin = '2020-12-19 00:01:21.283'
+,@archivo = 'archivoPrueba',@nombArch = 'archivo Prueba', @tipArch = 'Tipo archivo',@rubro = 'Proyectos',@codigoCurso = 'CE3101',@numeroGrupo = 1
 
 execute verNotasEstudianteGrupo @carnet = '2019A0021',@codigoCurso = 'CE3101' ,@numeroGrupo = 1
 
 select * from EvaluacionesEstudiantes
-select * from Evaluaciones
-select * from Rubros
+select * from Evaluaciones where idRubro = 42
+select * from grupo;
+select * from curso;
+select * from Rubros where idgrupo = 158;
 select * from v_notasEstudiantes
+158
 */
 
 --update rubros set porcentaje = 10 where idGrupo = 158 and rubro = 'Proyectos'
