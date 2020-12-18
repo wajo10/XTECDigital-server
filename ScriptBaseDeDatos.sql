@@ -116,6 +116,8 @@ create table Evaluaciones(
 	fechaInicio datetime not null,
 	fechaFin dateTime not null,
 	archivo varchar(max),
+	nombreArchivo varchar (100),
+	tipoArchivo varchar (100),
 	revisado bit default 0,
 	idRubro int not null,
 	primary key (idEvaluacion)
@@ -129,10 +131,13 @@ create table EvaluacionesEstudiantes (
 	nota decimal(5,2),
 	comentario varchar (300),
 	archivoRetroalimentacion varchar(max),
+	nombArchRetr varchar (100),
+	tipoArchRetr varchar (100),
 	archivoSolucion varchar(max),
+	nomArchSol varchar (100),
+	tipoArchSol varchar (100),
 	primary key (carnet, idEvaluacion)
 );
-
 
 --Modificaciones de tablas
 Alter table Semestre
