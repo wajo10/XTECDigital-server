@@ -359,8 +359,8 @@ GO
 CREATE OR ALTER PROCEDURE obtenerProfesorExcel
 AS
 BEGIN
-select IdProfesor, NombreProfesor, ApellidoProfesor,ApellidoProfesor2 from  Data$ where IdProfesor != 'NULL' 
-group by IdProfesor, NombreProfesor, ApellidoProfesor, ApellidoProfesor2
+select IdProfesor, NombreProfesor, ApellidoProfesor,ApellidoProfesor1 from  Data$ where IdProfesor != 'NULL' 
+group by IdProfesor, NombreProfesor, ApellidoProfesor, ApellidoProfesor1
 END;
 GO
 
@@ -492,6 +492,8 @@ Go
 
 --*******************************PROFESOR******************************************
 --Ver Curos a los que pertenece un profesor
+--execute verCursosProfesor @cedula  = '1-1111-1111'
+
 CREATE OR ALTER PROCEDURE verCursosProfesor @cedula varchar(20)
 AS
 BEGIN
@@ -906,6 +908,8 @@ BEGIN
 	where codigoCurso = @codigoCurso and carnet = @carnet and numeroGrupo = @numeroGrupo;
 END;
 GO
+
+/*
 execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0021',@idEvaluacion = 46, @numeroGrupoEvaluacion = 1
 execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0021',@idEvaluacion = 46, @numeroGrupoEvaluacion = 1
 execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0036',@idEvaluacion = 46, @numeroGrupoEvaluacion = 1
@@ -934,7 +938,7 @@ select * from Rubros where idgrupo = 158;
 select * from v_notasEstudiantes
 158
 */
-
+*/
 --update rubros set porcentaje = 10 where idGrupo = 158 and rubro = 'Proyectos'
 CREATE OR ALTER PROCEDURE verNoticiasGrupo @codigoCurso varchar(10), @numeroGrupo int
 AS
@@ -944,7 +948,7 @@ BEGIN
 END;
 GO
 
-
+execute 
 /*
 CREATE OR ALTER PROCEDURE PRUEBA
 AS
