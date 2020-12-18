@@ -57,14 +57,15 @@ CREATE OR ALTER PROCEDURE verCursosSemestre @ano int, @periodo varchar(10)
 AS
 BEGIN
 	DECLARE @idSemestre int = (select idSemestre from Semestre where ano = @ano and periodo = @periodo);
-	SELECT  p.cedulaProfesor, c.codigo, g.numeroGrupo from Semestre as s 
+	SELECT c.codigo, g.numeroGrupo from Semestre as s 
 	inner join CursosPorSemestre as cs on s.idSemestre = cs.idSemestre
 	inner join Curso as c on c.codigo = cs.codigoCurso
 	inner join Grupo as g on c.codigo = g.codigoCurso
-	inner join ProfesoresGrupo as p on g.idGrupo = p.idGrupo
-	where s.idSemestre = @idSemestre;
+	where s.idSemestre = @idSemestre
+	Group by c.codigo,g.numeroGrupo
 END;
 GO
+
 
 --Permite ver los estudiantes de un grupo de un semestre y curso especifico
 CREATE OR ALTER PROCEDURE verEstudiantesSemestre @ano int, @periodo varchar(10), @grupo int, @codigoCurso varchar (10)
@@ -108,12 +109,13 @@ END;
 GO
 
 --Agrega un curso existente al semestre indicado
-CREATE OR ALTER PROCEDURE agregarCursoSemestre @codigoCurso varchar (20), @anoSemestre int, @periodoSemestre varchar
+CREATE OR ALTER PROCEDURE agregarCursoSemestre @codigoCurso varchar (20), @anoSemestre int, @periodoSemestre varchar(10)
 AS
 BEGIN
+	DECLARE @idSemestre int = (select idSemestre from Semestre where ano = @anoSemestre and periodo = @periodoSemestre);
 	IF ((select habilitado from Curso where codigo = @codigoCurso) = 1)
 	BEGIN
-		If exists(select * from CursosPorSemestre where codigoCurso = @codigoCurso)
+		If exists(select * from CursosPorSemestre where codigoCurso = @codigoCurso and idSemestre = @idSemestre )
 		BEGIN
 			RAISERROR ('El curso que intenta agregar ya fue agregado previamente',16,1);
 		END;
@@ -127,7 +129,6 @@ BEGIN
 	Begin
 		RAISERROR ('El curso que desea agregar al semestre no se encuentra habilitado',16,1);
 	End;
-
 END;
 GO
 
@@ -240,10 +241,11 @@ END;
 GO
 
 --Establecer los grupos del curso y le crea las carpetas predeterminadas
-CREATE OR ALTER PROCEDURE crearGrupo @codigoCurso varchar(20), @numeroGrupo int
+CREATE OR ALTER PROCEDURE crearGrupo @codigoCurso varchar(20), @numeroGrupo int, @ano int, @periodo varchar(10)
 AS
 BEGIN
-	IF EXISTS (select * from CursosPorSemestre where codigoCurso = @codigoCurso)
+	DECLARE @idSemestre int = (select idSemestre from Semestre where ano = @ano and periodo = @periodo);
+	IF EXISTS (select * from CursosPorSemestre where idSemestre = @idSemestre and codigoCurso = @codigoCurso)
 		BEGIN
 			insert into Grupo (codigoCurso, numeroGrupo) values (@codigoCurso, @numeroGrupo);
 			Execute crearCarpeta @nombre = 'Presentaciones', @codigoCurso = @codigoCurso , @numeroGrupo = @numeroGrupo;
@@ -255,7 +257,7 @@ BEGIN
 			Execute crearRubro @rubro = 'Proyectos', @porcentaje = 40, @codigoCurso = @codigoCurso, @numeroGrupo = @numeroGrupo;
 		END;
 	ELSE
-		RAISERROR ('El curso al que intenta agregarle un grupo no existe',16,1);
+		RAISERROR ('El curso al que intenta agregarle un grupo no existe en este semestre',16,1);
 END;
 GO
 
@@ -438,7 +440,7 @@ Go
 
 --Valida que no se pueda crear el mismo rubro para un grupo
 Create or Alter Trigger tr_verificarRubro on Rubros
-for Insert
+for Insert, Update
 As
 IF Exists (select * from Rubros as r join inserted as i on r.idGrupo = i.idGrupo and r.rubro = i.rubro having COUNT(*)>1)
 BEGIN
@@ -446,7 +448,19 @@ BEGIN
 	ROLLBACK TRANSACTION;
 	Return
 END;
+IF ((select sum (porcentaje) from inserted where idGrupo = (select idGrupo from inserted)) > 100)
+BEGIN
+	RAISERROR ('El porcentaje total de los rubros excede el 100',16,1);
+	ROLLBACK TRANSACTION;
+	Return
+END;
 Go
+
+/*
+select * from Rubros where idGrupo = 168
+update Rubros set porcentaje = 30 where idGrupo = 168 and rubro = 'Examenes'
+execute crearGrupo @codigoCurso = 'CE3101',@numeroGrupo = 10,@ano = 2021,@periodo = 1
+*/
 
 --Valida que no se puedan eliminar los rubros creados al inicializar el semestre
 Create or Alter Trigger tr_EliminarRubro on Rubros
@@ -483,6 +497,15 @@ Go
 
 
 --*******************************PROFESOR******************************************
+--Ver Curos a los que pertenece un profesor
+CREATE OR ALTER PROCEDURE verCursosProfesor @cedula varchar(20)
+AS
+BEGIN
+	Select c.nombre, g.numeroGrupo from ProfesoresGrupo as p
+	inner join Grupo as g on g.idGrupo = p.idGrupo
+	inner join Curso as c on g.codigoCurso = c.codigo where p.cedulaProfesor = @cedula
+END;
+GO
 
 --Ver las carpetas de un grupo
 CREATE OR ALTER PROCEDURE verCarpetasGrupo @codigoCurso varchar(30), @numeroGrupo int
@@ -523,6 +546,7 @@ BEGIN
 END;
 GO
 
+--Ver los un documento especifico
 CREATE OR ALTER PROCEDURE verDocumentosEspecifico @nombreCarpeta varchar (50), @codigoCurso varchar (10), @numeroGrupo int, @nombreDocumento varchar(50)
 AS
 BEGIN
@@ -863,7 +887,7 @@ GO
 CREATE OR ALTER PROCEDURE verCursosEstudiante @carnet varchar(20)
 AS
 BEGIN
-	Select e.carnetEstudiante, g.idgrupo, c.nombre, c.carrera, c.creditos from Curso as c
+	Select g.numeroGrupo, c.nombre, c.carrera, c.creditos from Curso as c
 	inner join Grupo as g on g.codigoCurso = c.codigo
 	inner join EstudiantesGrupo as e on e.idGrupo = g.idGrupo where carnetEstudiante = @carnet;
 END;
@@ -876,7 +900,6 @@ BEGIN
 	update EvaluacionesEstudiantes set archivoSolucion = @archivo, nomArchSol = @nombArch, tipoArchSol = @tipoArch where idEvaluacion = @idEvaluacion and carnet = @carnet;
 END;
 GO
-
 
 --Permite ver las notas de los estudiantes segun el grupo al que pertenezca
 CREATE OR ALTER PROCEDURE verNotasEstudianteGrupo @carnet varchar(15), @codigoCurso varchar (15), @numeroGrupo int
@@ -891,6 +914,23 @@ END;
 GO
 
 --Ver las noticias de un grupo ordenadas por fecha
+
+/*
+execute revisarEvaluacion @carnet = '2019C0038',@idEvaluacion = 43 ,@nota = 85,@comentario = 'ComentarioGrupal',@nombreArch ='nombre prueba',
+@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
+
+execute crearEvaluacion @grupal = 0, @nombre = 'Examen final',@porcentaje =  ,@fechaInicio = '2020-12-18 00:01:21.283',@fechaFin = '2020-12-19 00:01:21.283'
+,@archivo = 'archivoPrueba',@nombArch = 'archivo Prueba', @tipArch = 'Tipo archivo',@rubro = 'Quices',@codigoCurso = 'CE3101',@numeroGrupo = 1
+
+execute verNotasEstudianteGrupo @carnet = '2019A0021',@codigoCurso = 'CE3101' ,@numeroGrupo = 1
+
+select * from EvaluacionesEstudiantes
+select * from Evaluaciones
+select * from Rubros
+select * from v_notasEstudiantes
+*/
+
+--update rubros set porcentaje = 10 where idGrupo = 158 and rubro = 'Proyectos'
 CREATE OR ALTER PROCEDURE verNoticiasGrupo @codigoCurso varchar(10), @numeroGrupo int
 AS
 BEGIN
