@@ -702,6 +702,16 @@ AS
 	group by codigo, carnetEstudiante
 GO
 
+--View notas grupales
+CREATE OR ALTER VIEW v_notasGrupalesResumidas
+AS
+	select ne.carnet, ne.nombreEvaluacion, ne.rubro, ne.notaObtenida, ne.porcentajeObtenido, ne.porcentajeEvaluacion, (select sum (nf.notaFinalRubro)) notaFinalCurso
+	from v_notasEstudiantes as ne
+	inner join v_notasFinales as nf on nf.carnet = ne.carnet and nf.rubro = ne.rubro
+	group by ne.carnet,ne.nombreEvaluacion,ne.rubro,ne.notaObtenida, ne.porcentajeObtenido, ne.porcentajeEvaluacion;
+GO
+select * from v_notasGrupalesResumidas
+
 --Permite ver el reporte de los estudiantes matriculados en un curso en especifico
 CREATE OR ALTER PROCEDURE verEstudiantesCurso @codigoCurso varchar (20) AS
 BEGIN
@@ -721,13 +731,13 @@ BEGIN
 	group by ne.carnet,ne.rubro,nombreEvaluacion, notaObtenida, porcentajeObtenido, porcentajeEvaluacion, notaFinalRubro
 END;
 GO
-/*
+
 select * from Grupo
 execute verNotasGrupo @codigoCurso = 'CE3101',@numeroGrupo =1
 execute verNotasEstudianteGrupo @carnet ='2019A0021', @codigoCurso = 'CE3101',@numeroGrupo =1
 select * from v_notasEstudiantes
 select * from v_notasFinales
-*/
+
 
 --........................................................TRIGGERS........................................................
 --Asigna la misma calificacion a todos los miembros de una evaluacion grupal
