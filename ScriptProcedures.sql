@@ -691,8 +691,9 @@ GO
 --View que muestra las notas finales de un estudiante en
 CREATE OR ALTER VIEW v_notasFinales
 AS
-select carnet, codigoCurso, sum (porcentajeObtenido) notaFinal from v_notasEstudiantes group by carnet, codigoCurso
+select carnet, codigoCurso, rubro, sum (porcentajeObtenido) notaFinalRubro from v_notasEstudiantes group by carnet,rubro, codigoCurso
 GO
+
 
 --View que permite ver los estudiantes matriculados en todos los cursos
 CREATE OR ALTER VIEW v_estudiantesCursos
@@ -702,6 +703,16 @@ AS
 	inner join Curso as c on c.codigo = g.codigoCurso
 	group by codigo, carnetEstudiante
 GO
+
+--View notas grupales
+CREATE OR ALTER VIEW v_notasGrupalesResumidas
+AS
+	select ne.carnet, ne.nombreEvaluacion, ne.rubro, ne.notaObtenida, ne.porcentajeObtenido, ne.porcentajeEvaluacion, (select sum (nf.notaFinalRubro)) notaFinalCurso
+	from v_notasEstudiantes as ne
+	inner join v_notasFinales as nf on nf.carnet = ne.carnet and nf.rubro = ne.rubro
+	group by ne.carnet,ne.nombreEvaluacion,ne.rubro,ne.notaObtenida, ne.porcentajeObtenido, ne.porcentajeEvaluacion;
+GO
+select * from v_notasGrupalesResumidas
 
 --Permite ver el reporte de los estudiantes matriculados en un curso en especifico
 CREATE OR ALTER PROCEDURE verEstudiantesCurso @codigoCurso varchar (20) AS
@@ -714,11 +725,21 @@ GO
 CREATE OR ALTER PROCEDURE verNotasGrupo @codigoCurso varchar (15), @numeroGrupo int
 AS
 BEGIN
-	select ne.carnet, nombreEvaluacion, rubro, notaObtenida, porcentajeObtenido, porcentajeEvaluacion, nf.notaFinal
-	from v_notasEstudiantes as ne join v_notasFinales as nf on ne.carnet = nf.carnet
-	where ne.codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo;
+	select ne.carnet, ne.nombreEvaluacion, ne.rubro, notaObtenida, porcentajeObtenido, porcentajeEvaluacion, nf.notaFinalRubro,
+	(select sum(notaFinalRubro))
+	from v_notasEstudiantes as ne 
+	join v_notasFinales as nf on ne.carnet = nf.carnet and ne.rubro = nf.rubro
+	where ne.codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo
+	group by ne.carnet,ne.rubro,nombreEvaluacion, notaObtenida, porcentajeObtenido, porcentajeEvaluacion, notaFinalRubro
 END;
 GO
+
+select * from Grupo
+execute verNotasGrupo @codigoCurso = 'CE3101',@numeroGrupo =1
+execute verNotasEstudianteGrupo @carnet ='2019A0021', @codigoCurso = 'CE3101',@numeroGrupo =1
+select * from v_notasEstudiantes
+select * from v_notasFinales
+
 
 --........................................................TRIGGERS........................................................
 --Asigna la misma calificacion a todos los miembros de una evaluacion grupal
@@ -902,44 +923,65 @@ CREATE OR ALTER PROCEDURE verNotasEstudianteGrupo @carnet varchar(15), @codigoCu
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
-	select carnet, nombreEvaluacion, rubro, notaObtenida, porcentajeObtenido, porcentajeEvaluacion,
-	(select sum (porcentajeObtenido) from v_notasEstudiantes where carnet = @carnet and codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo) notaFinal
-	from v_notasEstudiantes 
-	where codigoCurso = @codigoCurso and carnet = @carnet and numeroGrupo = @numeroGrupo;
+	DECLARE @notaFinal decimal (5,2) = (select sum(notaFinalRubro ) from v_notasFinales where carnet = @carnet);
+	select n.nombreEvaluacion, n.rubro, n.notaObtenida, n.porcentajeObtenido, n.porcentajeEvaluacion, nf.notaFinalRubro, @notaFinal notaFinal
+	from v_notasEstudiantes as n
+	inner join v_notasFinales as nf on n.carnet = nf.carnet and n.rubro = nf.rubro
+	where n.codigoCurso = @codigoCurso and n.carnet = @carnet and numeroGrupo = @numeroGrupo
+	group by n.rubro, nombreEvaluacion, notaObtenida, porcentajeObtenido, porcentajeEvaluacion,notaFinalRubro
 END;
 GO
 
+
 /*
-execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0021',@idEvaluacion = 46, @numeroGrupoEvaluacion = 1
-execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0021',@idEvaluacion = 46, @numeroGrupoEvaluacion = 1
-execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0036',@idEvaluacion = 46, @numeroGrupoEvaluacion = 1
-execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0036',@idEvaluacion = 46, @numeroGrupoEvaluacion = 1
-execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0021',@idEvaluacion = 46, @numeroGrupoEvaluacion = 1
-execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0021',@idEvaluacion = 46, @numeroGrupoEvaluacion = 2
-execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0021',@idEvaluacion = 46, @numeroGrupoEvaluacion = 2
-execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0021',@idEvaluacion = 46, @numeroGrupoEvaluacion = 2
-execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0021',@idEvaluacion = 46, @numeroGrupoEvaluacion = 2
-execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0021',@idEvaluacion = 46, @numeroGrupoEvaluacion = 2
---Ver las noticias de un grupo ordenadas por fecha
-/*
-execute revisarEvaluacion @carnet = '2019C0038',@idEvaluacion = 43 ,@nota = 85,@comentario = 'ComentarioGrupal',@nombreArch ='nombre prueba',
+execute verNotasEstudianteGrupo @carnet = '2019A0021', @codigoCurso = 'CE3101' , @numeroGrupo = 1
+
+execute revisarEvaluacion @carnet = '2019A0021',@idEvaluacion = 50 ,@nota = 85,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
+@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
+execute revisarEvaluacion @carnet = '2019A0036',@idEvaluacion = 50 ,@nota = 95,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
+@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
+execute revisarEvaluacion @carnet = '2019A0221',@idEvaluacion = 50 ,@nota = 45,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
+@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
+execute revisarEvaluacion @carnet = '2019B0022',@idEvaluacion = 50 ,@nota = 100,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
+@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
+execute revisarEvaluacion @carnet = '2019B0037',@idEvaluacion = 50 ,@nota = 50,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
+@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
+execute revisarEvaluacion @carnet = '2019C0023',@idEvaluacion = 50 ,@nota = 78,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
+@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
+execute revisarEvaluacion @carnet = '2019C0038',@idEvaluacion = 50 ,@nota = 54.65,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
+@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
+execute revisarEvaluacion @carnet = '2019D0019',@idEvaluacion = 50 ,@nota = 68,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
+@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
+execute revisarEvaluacion @carnet = '2019D0034',@idEvaluacion = 50 ,@nota = 33,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
+@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
+execute revisarEvaluacion @carnet = '2019D0049',@idEvaluacion = 50 ,@nota = 0,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
 @tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
 
-execute crearEvaluacion @grupal = 1, @nombre = 'Proyecto final',@porcentaje = 30 ,@fechaInicio = '2020-12-18 00:01:21.283',@fechaFin = '2020-12-19 00:01:21.283'
-,@archivo = 'archivoPrueba',@nombArch = 'archivo Prueba', @tipArch = 'Tipo archivo',@rubro = 'Proyectos',@codigoCurso = 'CE3101',@numeroGrupo = 1
+execute crearEvaluacion @grupal = 1, @nombre = 'Examen 2',@porcentaje = 10 ,@fechaInicio = '2020-12-18 00:01:21.283',@fechaFin = '2020-12-19 00:01:21.283'
+,@archivo = 'archivoPrueba',@nombArch = 'archivo Prueba', @tipArch = 'Tipo archivo',@rubro = 'Examenes',@codigoCurso = 'CE3101',@numeroGrupo = 1
 
-execute verNotasEstudianteGrupo @carnet = '2019A0021',@codigoCurso = 'CE3101' ,@numeroGrupo = 1
 
 select * from EvaluacionesEstudiantes
 select * from Evaluaciones where idRubro = 42
 select * from grupo;
 select * from curso;
 select * from Rubros where idgrupo = 158;
-select * from v_notasEstudiantes
+select * from v_notasEstudiantes 
 158
+
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0021',@idEvaluacion = 50, @numeroGrupoEvaluacion = 1
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0036',@idEvaluacion = 50, @numeroGrupoEvaluacion = 1
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0221',@idEvaluacion = 50, @numeroGrupoEvaluacion = 1
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019B0022',@idEvaluacion = 50, @numeroGrupoEvaluacion = 1
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019B0037',@idEvaluacion = 50, @numeroGrupoEvaluacion = 1
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019C0023',@idEvaluacion = 50, @numeroGrupoEvaluacion = 2
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019C0038',@idEvaluacion = 50, @numeroGrupoEvaluacion = 2
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019D0019',@idEvaluacion = 50, @numeroGrupoEvaluacion = 2
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019D0034',@idEvaluacion = 50, @numeroGrupoEvaluacion = 2
+execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019D0049',@idEvaluacion = 50, @numeroGrupoEvaluacion = 2
 */
-*/
---update rubros set porcentaje = 10 where idGrupo = 158 and rubro = 'Proyectos'
+
+--Ver las noticias de un grupo ordenadas por fecha
 CREATE OR ALTER PROCEDURE verNoticiasGrupo @codigoCurso varchar(10), @numeroGrupo int
 AS
 BEGIN
