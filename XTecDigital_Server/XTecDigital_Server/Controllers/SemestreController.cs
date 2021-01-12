@@ -98,9 +98,9 @@ namespace XTecDigital_Server.Controllers
                     var jsons = new[]
                     {
                         new {
-                            ano = dr[1].ToString(),
-                            periodo = dr[2].ToString(),
-                            cedulaAdmin = dr[3].ToString(),
+                            ano = dr[0].ToString(),
+                            periodo = dr[1].ToString(),
+                            cedulaAdmin = dr[2].ToString(),
                         }
 
                      };
