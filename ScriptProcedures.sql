@@ -52,6 +52,16 @@ BEGIN
 END;
 GO
 
+
+--Ver todos los cursos disponibles
+CREATE OR ALTER PROCEDURE verSemestres
+AS
+BEGIN
+	SELECT ano, periodo, cedulaAdmin FROM Semestre;
+END;
+GO
+
+
 --Ver todos los cursos de un semestre
 CREATE OR ALTER PROCEDURE verCursosSemestre @ano int, @periodo varchar(10)
 AS
@@ -133,7 +143,7 @@ END;
 GO
 
 --Crea un semestre (1 para el primer semestre, 2 para el segundo semestre y V para el periodo de verano).  
-CREATE OR ALTER PROCEDURE crearSemestre @ano int, @periodo int, @cedulaAdmin int
+CREATE OR ALTER PROCEDURE crearSemestre @ano int, @periodo varchar(10), @cedulaAdmin varchar(15)
 AS
 Begin
 INSERT INTO Semestre (ano, periodo, cedulaAdmin) values (@ano, @periodo, @cedulaAdmin);

@@ -1,7 +1,6 @@
 Execute agregarProfesor @cedula = '411110';
 Execute agregarProfesor @cedula = '40348';
 Execute agregarProfesor @cedula = '24713';
-Execute agregarProfesor @cedula = '24713';
 
 Execute agregarAdmin @cedula = '0';
 Execute agregarAdmin @cedula = '12345';
@@ -24,21 +23,21 @@ Execute agregarEstudiante @carnet = '14453544';
 */
 
 --Creacion semestre
-Execute crearSemestre @ano = '2021', @periodo = 1, @cedulaAdmin = '11111';
+Execute crearSemestre @ano = '2021', @periodo = 1, @cedulaAdmin = '0';
 
 --Creacion de cursos
-Execute crearCurso @Codigo = 'CE3101', @nombre = 'BASES DE DATOS', @carrera = 'INGENIERIA EN COMPUTADORES', @creditos = 4, @habilitado = 1, @cedulaAdmin = 11111;
-Execute crearCurso @Codigo = 'MA0101', @nombre = 'MATEMATICA GENERAL', @carrera = 'INGENIERIA EN COMPUTADORES', @creditos = 2, @habilitado = 1, @cedulaAdmin = 11111;
-Execute crearCurso @Codigo = 'EL2114', @nombre = 'CIRCUITOS CA', @carrera = 'INGENIERIA ELECTRONICA', @creditos = 4, @habilitado = 1, @cedulaAdmin = 11111;
-Execute crearCurso @Codigo = 'CE1010', @nombre = 'intro y taller', @carrera = 'INGENIERIA EN COMPUTADORES', @creditos = 4, @habilitado = 1, @cedulaAdmin = 11111;
+Execute crearCurso @Codigo = 'CE3101', @nombre = 'BASES DE DATOS', @carrera = 'INGENIERIA EN COMPUTADORES', @creditos = 4, @habilitado = 1, @cedulaAdmin = '0';
+Execute crearCurso @Codigo = 'MA0101', @nombre = 'MATEMATICA GENERAL', @carrera = 'INGENIERIA EN COMPUTADORES', @creditos = 2, @habilitado = 1, @cedulaAdmin = '0';
+Execute crearCurso @Codigo = 'EL2114', @nombre = 'CIRCUITOS CA', @carrera = 'INGENIERIA ELECTRONICA', @creditos = 4, @habilitado = 1, @cedulaAdmin = '0';
+Execute crearCurso @Codigo = 'CE1010', @nombre = 'intro y taller', @carrera = 'INGENIERIA EN COMPUTADORES', @creditos = 4, @habilitado = 1, @cedulaAdmin = '0';
 
 --Creacion y asignacion de grupos
-Execute crearGrupo @codigoCurso = 'CE3101', @numeroGrupo = 1;
-Execute crearGrupo @codigoCurso = 'CE3101', @numeroGrupo = 2;
-Execute crearGrupo @codigoCurso = 'MA0101', @numeroGrupo = 1;
-Execute crearGrupo @codigoCurso = 'MA0101', @numeroGrupo = 2;
-Execute crearGrupo @codigoCurso = 'MA0101', @numeroGrupo = 3;
-Execute crearGrupo @codigoCurso = 'EL2114', @numeroGrupo = 1;
+Execute crearGrupo @codigoCurso = 'CE3101', @numeroGrupo = 1, @ano = '2021', @periodo = 1;
+Execute crearGrupo @codigoCurso = 'CE3101', @numeroGrupo = 2, @ano = '2021', @periodo = 1;
+Execute crearGrupo @codigoCurso = 'MA0101', @numeroGrupo = 1, @ano = '2021', @periodo = 1;
+Execute crearGrupo @codigoCurso = 'MA0101', @numeroGrupo = 2, @ano = '2021', @periodo = 1;
+Execute crearGrupo @codigoCurso = 'MA0101', @numeroGrupo = 3, @ano = '2021', @periodo = 1;
+Execute crearGrupo @codigoCurso = 'EL2114', @numeroGrupo = 1, @ano = '2021', @periodo = 1;
 
 --Asignacion de profesores a los grupos
 Execute asignarProfesorGrupo @codigoCurso = 'CE3101', @numeroGrupo = 1, @cedulaProfesor = '1234'; --Hay que cambiar la cedula por una que exista

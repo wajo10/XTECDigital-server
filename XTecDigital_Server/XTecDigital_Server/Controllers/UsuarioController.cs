@@ -549,8 +549,58 @@ namespace XTecDigital_Server.Controllers
         }
 
 
+        [Route("getNombreEstudiantes")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public List<Object> getEstudiantes()
+        {
+            var connectionString = "mongodb+srv://admin:admin@usuarios.ozlkz.mongodb.net/Usuarios?retryWrites=true&w=majority";
+            var mongoClient = new MongoClient(connectionString);
+            var dataBase = mongoClient.GetDatabase("Usuarios");
+            var collection = dataBase.GetCollection<BsonDocument>("estudiantes");
+            var projection = Builders<BsonDocument>.Projection.Exclude("_id");
+            var documents = collection.Find(new BsonDocument()).ToList();
+            List<Object> respuesta = new List<Object>();
+            if (documents != null)
+            {
+                var response = 
+                    new
+                        {
+                            respuesta = "200 OK",
+                            error = "null",
+                            rol = "estudiante"
+                        };
+                respuesta.Add(response);
+                
+                foreach (BsonDocument doc in documents)
+                {
+                    var estudiante =
 
+                        new
+                        {
+                            nombre = doc.GetValue("nombre").AsString + " " + doc.GetValue("apellido").AsString + " " + doc.GetValue("apellido").AsString,
+                            carnet = doc.GetValue("carnet").AsString
+                        };
+                    respuesta.Add(estudiante);
+                }
+                
+                return respuesta;
+            }
+            else
+            {
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "No hay estudiantes",
+                        },
+                     };
+                respuesta.Add(response);
+                return respuesta;
+            }
 
+        }
 
 
 
