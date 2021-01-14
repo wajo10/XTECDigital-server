@@ -81,6 +81,7 @@ BEGIN
 END;
 GO
 
+
 --Permite ver los profesores de un grupo de un semestre y curso especifico
 CREATE OR ALTER PROCEDURE verProfesorSemestre @ano int, @periodo varchar(10), @grupo int, @codigoCurso varchar (10)
 AS
@@ -108,6 +109,7 @@ BEGIN
 END;
 GO
 
+
 --Agrega un curso existente al semestre indicado
 CREATE OR ALTER PROCEDURE agregarCursoSemestre @codigoCurso varchar (20), @anoSemestre int, @periodoSemestre varchar(10)
 AS
@@ -133,7 +135,7 @@ END;
 GO
 
 --Crea un semestre (1 para el primer semestre, 2 para el segundo semestre y V para el periodo de verano).  
-CREATE OR ALTER PROCEDURE crearSemestre @ano int, @periodo int, @cedulaAdmin int
+CREATE OR ALTER PROCEDURE crearSemestre @ano int, @periodo varchar(10), @cedulaAdmin int
 AS
 Begin
 INSERT INTO Semestre (ano, periodo, cedulaAdmin) values (@ano, @periodo, @cedulaAdmin);
@@ -683,15 +685,20 @@ AS
 	from EvaluacionesEstudiantes as ee
 	join Evaluaciones as e on ee.idEvaluacion = e.idEvaluacion
 	join Rubros as r on r.idRubro = e.idRubro
-	join Grupo as g on g.idGrupo = r.idGrupo;
+	join Grupo as g on g.idGrupo = r.idGrupo
 GO
 
 --View que muestra las notas finales de un estudiante en
-CREATE OR ALTER VIEW v_notasFinales
+CREATE OR ALTER VIEW v_notasFinalesRubros
 AS
-select carnet, codigoCurso, rubro, sum (porcentajeObtenido) notaFinalRubro from v_notasEstudiantes group by carnet,rubro, codigoCurso
+select carnet, codigoCurso, rubro, sum (porcentajeObtenido) notaFinalRubro from v_notasEstudiantes group by carnet, rubro, codigoCurso
 GO
 
+--View que solo contiene el carnet y la nota total del estudiante en el curso
+create or alter view v_notaTotal
+AS
+select carnet, codigoCurso,sum(notaFinalRubro) notaFinal from v_notasFinalesRubros group by carnet, codigoCurso;
+GO
 
 --View que permite ver los estudiantes matriculados en todos los cursos
 CREATE OR ALTER VIEW v_estudiantesCursos
@@ -705,12 +712,12 @@ GO
 --View notas grupales
 CREATE OR ALTER VIEW v_notasGrupalesResumidas
 AS
-	select ne.carnet, ne.nombreEvaluacion, ne.rubro, ne.notaObtenida, ne.porcentajeObtenido, ne.porcentajeEvaluacion, (select sum (nf.notaFinalRubro)) notaFinalCurso
+	select ne.carnet, ne.numeroGrupo, ne.codigoCurso, ne.nombreEvaluacion, ne.rubro, ne.notaObtenida, ne.porcentajeObtenido, ne.porcentajeEvaluacion, nt.notaFinal notaFinalCurso
 	from v_notasEstudiantes as ne
-	inner join v_notasFinales as nf on nf.carnet = ne.carnet and nf.rubro = ne.rubro
-	group by ne.carnet,ne.nombreEvaluacion,ne.rubro,ne.notaObtenida, ne.porcentajeObtenido, ne.porcentajeEvaluacion;
+	inner join v_notasFinalesRubros as nf on nf.carnet = ne.carnet and nf.rubro = ne.rubro
+	inner join v_notaTotal as nt on nt.carnet = nf.carnet and nt.codigoCurso = nf.codigoCurso
+	group by ne.carnet, ne.numeroGrupo, ne.codigoCurso, ne.rubro, ne.nombreEvaluacion, ne.notaObtenida, ne.porcentajeObtenido, ne.porcentajeEvaluacion, nt.notaFinal;
 GO
-select * from v_notasGrupalesResumidas
 
 --Permite ver el reporte de los estudiantes matriculados en un curso en especifico
 CREATE OR ALTER PROCEDURE verEstudiantesCurso @codigoCurso varchar (20) AS
@@ -723,21 +730,10 @@ GO
 CREATE OR ALTER PROCEDURE verNotasGrupo @codigoCurso varchar (15), @numeroGrupo int
 AS
 BEGIN
-	select ne.carnet, ne.nombreEvaluacion, ne.rubro, notaObtenida, porcentajeObtenido, porcentajeEvaluacion, nf.notaFinalRubro,
-	(select sum(notaFinalRubro))
-	from v_notasEstudiantes as ne 
-	join v_notasFinales as nf on ne.carnet = nf.carnet and ne.rubro = nf.rubro
-	where ne.codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo
-	group by ne.carnet,ne.rubro,nombreEvaluacion, notaObtenida, porcentajeObtenido, porcentajeEvaluacion, notaFinalRubro
+	select carnet, nombreEvaluacion, rubro, notaObtenida, porcentajeObtenido, porcentajeEvaluacion, notaFinalCurso 
+	from v_notasGrupalesResumidas where numeroGrupo = @numeroGrupo and codigoCurso = @codigoCurso;
 END;
 GO
-
-select * from Grupo
-execute verNotasGrupo @codigoCurso = 'CE3101',@numeroGrupo =1
-execute verNotasEstudianteGrupo @carnet ='2019A0021', @codigoCurso = 'CE3101',@numeroGrupo =1
-select * from v_notasEstudiantes
-select * from v_notasFinales
-
 
 --........................................................TRIGGERS........................................................
 --Asigna la misma calificacion a todos los miembros de una evaluacion grupal
@@ -921,15 +917,14 @@ CREATE OR ALTER PROCEDURE verNotasEstudianteGrupo @carnet varchar(15), @codigoCu
 AS
 BEGIN
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
-	DECLARE @notaFinal decimal (5,2) = (select sum(notaFinalRubro ) from v_notasFinales where carnet = @carnet);
+	DECLARE @notaFinal decimal (5,2) = (select sum(notaFinalRubro ) from v_notasFinalesRubros where carnet = @carnet);
 	select n.nombreEvaluacion, n.rubro, n.notaObtenida, n.porcentajeObtenido, n.porcentajeEvaluacion, nf.notaFinalRubro, @notaFinal notaFinal
 	from v_notasEstudiantes as n
-	inner join v_notasFinales as nf on n.carnet = nf.carnet and n.rubro = nf.rubro
+	inner join v_notasFinalesRubros as nf on n.carnet = nf.carnet and n.rubro = nf.rubro
 	where n.codigoCurso = @codigoCurso and n.carnet = @carnet and numeroGrupo = @numeroGrupo
 	group by n.rubro, nombreEvaluacion, notaObtenida, porcentajeObtenido, porcentajeEvaluacion,notaFinalRubro
 END;
 GO
-
 
 /*
 execute verNotasEstudianteGrupo @carnet = '2019A0021', @codigoCurso = 'CE3101' , @numeroGrupo = 1
