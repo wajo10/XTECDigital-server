@@ -289,6 +289,8 @@ BEGIN
 END;
 GO
 
+
+Execute agregarEstudiantesGrupo @carnet = '2019A0046', @codigoCurso = 'CC2525', @numeroGrupo = 78;
 --Establecer estudiantes del grupo
 CREATE OR ALTER PROCEDURE agregarEstudiantesGrupo @carnet varchar(15), @codigoCurso varchar(10), @numeroGrupo int
 AS
