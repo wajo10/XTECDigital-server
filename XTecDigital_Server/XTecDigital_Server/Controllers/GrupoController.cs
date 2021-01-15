@@ -130,7 +130,6 @@ namespace XTecDigital_Server.Controllers
         }
 
 
-
         [Route("eliminarProfesorGrupo")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
@@ -227,19 +226,22 @@ namespace XTecDigital_Server.Controllers
 
 
 
-        [Route("verEstudiantesGrupo")]
+        [Route("verEstudiantesSemestre")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
-        public List<Object> verEstudiantesGrupo(Grupo grupo)
+        public List<Object> verEstudiantesSemestre(Grupo grupo)
         {
             List<Object> estudiantes = new List<Object>();
             Curso usuarioCarrera = new Curso();
             //Connect to database
             SqlConnection conn = new SqlConnection(serverKey);
             conn.Open();
-            string insertQuery = "verEstudiantesGrupo";
+            string insertQuery = "verEstudiantesSemestre";
             SqlCommand cmd = new SqlCommand(insertQuery, conn);
             cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@ano", grupo.ano);
+            cmd.Parameters.AddWithValue("@periodo", grupo.periodo);
+            cmd.Parameters.AddWithValue("@grupo", grupo.grupo);
             cmd.Parameters.AddWithValue("@codigoCurso", grupo.codigoCurso);
             SqlDataReader dr = cmd.ExecuteReader();
             try
@@ -268,9 +270,6 @@ namespace XTecDigital_Server.Controllers
                         new {
                             carnet = dr[0].ToString(),
                             nombre = document.GetValue("nombre").AsString,
-                            email = document.GetValue("email").AsString,
-                            telefono = document.GetValue("telefono").AsString,
-                            codigo = dr[1].ToString(),
                         }
 
                      };
@@ -308,7 +307,83 @@ namespace XTecDigital_Server.Controllers
 
 
 
+        [Route("verProfesorSemestre")]
+        [EnableCors("AnotherPolicy")]
+        [HttpPost]
+        public List<Object> verProfesorSemestre(Grupo grupo)
+        {
+            List<Object> profesores = new List<Object>();
+            Curso usuarioCarrera = new Curso();
+            //Connect to database
+            SqlConnection conn = new SqlConnection(serverKey);
+            conn.Open();
+            string insertQuery = "verProfesorSemestre";
+            SqlCommand cmd = new SqlCommand(insertQuery, conn);
+            cmd.CommandType = System.Data.CommandType.StoredProcedure;
+            cmd.Parameters.AddWithValue("@ano", grupo.ano);
+            cmd.Parameters.AddWithValue("@periodo", grupo.periodo);
+            cmd.Parameters.AddWithValue("@grupo", grupo.grupo);
+            cmd.Parameters.AddWithValue("@codigoCurso", grupo.codigoCurso);
+            SqlDataReader dr = cmd.ExecuteReader();
+            try
+            {
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
 
+                     };
+                profesores.Add(response);
+                while (dr.Read())
+                {
+                    var connectionString = "mongodb+srv://admin:admin@usuarios.ozlkz.mongodb.net/Usuarios?retryWrites=true&w=majority";
+                    var mongoClient = new MongoClient(connectionString);
+                    var dataBase = mongoClient.GetDatabase("Usuarios");
+                    var collection = dataBase.GetCollection<BsonDocument>("profesores");
+                    var filter1 = Builders<BsonDocument>.Filter.Eq("cedula", dr[0].ToString());
+                    var projection = Builders<BsonDocument>.Projection.Exclude("_id");
+                    var document = collection.Find(filter1).Project(projection).FirstOrDefault();
+                    var jsons = new[]
+                    {
+                        new {
+                            cedula = dr[0].ToString(),
+                            nombre = document.GetValue("nombre").AsString + " " + document.GetValue("apellido").AsString,
+                        }
+
+                     };
+                    Console.WriteLine(jsons);
+                    profesores.Add(jsons);
+                }
+
+            }
+            catch (Exception e)
+            {
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                profesores.Add(response);
+
+            }
+
+            List<object> retornar = new List<object>();
+            for (var x = 0; x < profesores.Count; x++)
+            {
+                var tempList = (IList<object>)profesores[x];
+                retornar.Add(tempList[0]);
+            }
+            conn.Close();
+            return retornar;
+        }
 
 
     }

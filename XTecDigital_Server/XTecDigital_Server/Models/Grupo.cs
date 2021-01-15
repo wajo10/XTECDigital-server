@@ -17,5 +17,6 @@ namespace XTecDigital_Server.Models
         public string carnet { get; set; }
         public int ano { get; set; }
         public string periodo { get; set; }
+        public int grupo { get; set; }
     }
 }
