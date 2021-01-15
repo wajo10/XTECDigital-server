@@ -61,8 +61,11 @@ BEGIN
 END;
 GO
 
-
+--Select * from Semestre
 --Ver todos los cursos de un semestre
+--Execute verCursosSemestre @ano = 2021, @periodo = '1'
+--Execute verCursosSemestre @ano = 2021, @periodo = 'II'
+AS
 CREATE OR ALTER PROCEDURE verCursosSemestre @ano int, @periodo varchar(10)
 AS
 BEGIN
@@ -289,8 +292,7 @@ BEGIN
 END;
 GO
 
-
-Execute agregarEstudiantesGrupo @carnet = '2019A0046', @codigoCurso = 'CC2525', @numeroGrupo = 78;
+--Execute agregarEstudiantesGrupo @carnet = '2019A0046', @codigoCurso = 'CC2525', @numeroGrupo = 78;
 --Establecer estudiantes del grupo
 CREATE OR ALTER PROCEDURE agregarEstudiantesGrupo @carnet varchar(15), @codigoCurso varchar(10), @numeroGrupo int
 AS
@@ -724,7 +726,6 @@ AS
 	inner join v_notasFinales as nf on nf.carnet = ne.carnet and nf.rubro = ne.rubro
 	group by ne.carnet,ne.nombreEvaluacion,ne.rubro,ne.notaObtenida, ne.porcentajeObtenido, ne.porcentajeEvaluacion;
 GO
-select * from v_notasGrupalesResumidas
 
 --Permite ver el reporte de los estudiantes matriculados en un curso en especifico
 CREATE OR ALTER PROCEDURE verEstudiantesCurso @codigoCurso varchar (20) AS
@@ -745,14 +746,14 @@ BEGIN
 	group by ne.carnet,ne.rubro,nombreEvaluacion, notaObtenida, porcentajeObtenido, porcentajeEvaluacion, notaFinalRubro
 END;
 GO
-
+/*
 select * from Grupo
 execute verNotasGrupo @codigoCurso = 'CE3101',@numeroGrupo =1
 execute verNotasEstudianteGrupo @carnet ='2019A0021', @codigoCurso = 'CE3101',@numeroGrupo =1
 select * from v_notasEstudiantes
 select * from v_notasFinales
 
-
+*/
 --........................................................TRIGGERS........................................................
 --Asigna la misma calificacion a todos los miembros de una evaluacion grupal
 CREATE OR ALTER TRIGGER tr_modificacionGrupal on EvaluacionesEstudiantes
@@ -1002,7 +1003,6 @@ BEGIN
 END;
 GO
 
-execute 
 /*
 CREATE OR ALTER PROCEDURE PRUEBA
 AS

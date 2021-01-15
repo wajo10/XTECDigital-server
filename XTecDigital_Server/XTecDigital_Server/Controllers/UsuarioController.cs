@@ -356,7 +356,7 @@ namespace XTecDigital_Server.Controllers
         [Route("asignarProfesorGrupo")]
         [EnableCors("AnotherPolicy")]
         [HttpPost]
-        public void asignarProfesorGrupo(Usuario usuario)
+        public object asignarProfesorGrupo(Usuario usuario)
         {
             SqlConnection conn = new SqlConnection(serverKey);
             conn.Open();
@@ -366,8 +366,37 @@ namespace XTecDigital_Server.Controllers
             cmd.Parameters.AddWithValue("@codigoCurso", usuario.codigoCurso);
             cmd.Parameters.AddWithValue("@numeroGrupo", usuario.numeroGrupo);
             cmd.Parameters.AddWithValue("@cedulaProfesor", usuario.cedulaProfesor);
-            cmd.ExecuteNonQuery();
+            List<Object> respuesta = new List<Object>();
+            try
+            {
+                cmd.ExecuteNonQuery();
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
+
+                     };
+                respuesta.Add(response);
+            }
+            catch (Exception e)
+            {
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                respuesta.Add(response);
+            }
             conn.Close();
+            return respuesta[0];
         }
 
         [Route("eliminarProfesorGrupo")]
@@ -387,10 +416,10 @@ namespace XTecDigital_Server.Controllers
             conn.Close();
         }
 
-        [Route("agregarEstudiantesGrupo")]
+        [Route("agregarEstudianteGrupo")]
         [EnableCors("AnotherPolicy")]
         [HttpGet]
-        public void agregarEstudiantesGrupo(Usuario usuario)
+        public object agregarEstudiantesGrupo(Usuario usuario)
         {
             SqlConnection conn = new SqlConnection(serverKey);
             conn.Open();
@@ -400,8 +429,37 @@ namespace XTecDigital_Server.Controllers
             cmd.Parameters.AddWithValue("@carnet", usuario.carnet);
             cmd.Parameters.AddWithValue("@codigoCurso", usuario.codigoCurso);
             cmd.Parameters.AddWithValue("@numeroGrupo", usuario.numeroGrupo);
-            cmd.ExecuteNonQuery();
+            List<Object> respuesta = new List<Object>();
+            try
+            {
+                cmd.ExecuteNonQuery();
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "200 OK",
+                            error = "null"
+                        }
+
+                     };
+                respuesta.Add(response);
+            }
+            catch (Exception e)
+            {
+                string[] separatingStrings = { "\r" };
+                var response = new[]
+                    {
+                        new
+                        {
+                            respuesta = "error",
+                            error = e.Message.Split(separatingStrings, System.StringSplitOptions.RemoveEmptyEntries)[0]
+            }
+
+                     };
+                respuesta.Add(response);
+            }
             conn.Close();
+            return respuesta[0];
         }
 
 

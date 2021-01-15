@@ -2,6 +2,14 @@ Execute agregarProfesor @cedula = '411110';
 Execute agregarProfesor @cedula = '40348';
 Execute agregarProfesor @cedula = '24713';
 
+Execute agregarProfesor @cedula = '1-1111-1111';
+Execute agregarProfesor @cedula = '2-2222-2222';
+Execute agregarProfesor @cedula = '3-3333-3333';
+
+
+
+
+
 Execute agregarAdmin @cedula = '0';
 Execute agregarAdmin @cedula = '12345';
 /*

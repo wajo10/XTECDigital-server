@@ -8,13 +8,11 @@ create table Administrador (
 	primary key (cedula)
 );
 
-ALTER TABLE Semestre
-ALTER COLUMN periodo varchar(10);
 
 create table Semestre (
 	idSemestre int identity(1,1),
 	ano int not null,
-	periodo varchar(1) not null,
+	periodo varchar(10) not null,
 	cedulaAdmin varchar(20) not null,
 	primary key (idSemestre)
 );
