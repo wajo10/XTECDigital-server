@@ -24,15 +24,21 @@ Go
 
 --*******************************ADMINISTRADOR******************************************
 --Crear curso
-CREATE OR ALTER PROCEDURE crearCurso @Codigo varchar(10), @nombre varchar(50), @carrera varchar(50), @creditos int, @habilitado bit, @cedulaAdmin int
+CREATE OR ALTER PROCEDURE crearCurso @Codigo varchar(10), @nombre varchar(50), @carrera varchar(50), @creditos int, @habilitado bit, @cedulaAdmin varchar (10)
 AS
 BEGIN
-	BEGIN TRY
-		INSERT INTO Curso values (@Codigo, @nombre, @carrera, @creditos, @habilitado, @cedulaAdmin);
-	END TRY
-	BEGIN CATCH
-		RAISERROR ('El curso que intenta agregar ya fue agregado previamente',16,1);
-	END CATCH
+	If exists (select * from Curso where codigo = @Codigo)
+		Begin
+			RAISERROR ('El curso que intenta agregar ya fue agregado previamente',16,1);
+		End;
+	Else if not exists (select * from Administrador where cedula = @cedulaAdmin)
+		Begin
+			RAISERROR ('La cedula de administrador suministrada no existe',16,1);
+		End;
+	Else
+		Begin
+			INSERT INTO Curso values (@Codigo, @nombre, @carrera, @creditos, @habilitado, @cedulaAdmin);
+		End;
 END;
 GO
 
@@ -141,6 +147,7 @@ Begin
 INSERT INTO Semestre (ano, periodo, cedulaAdmin) values (@ano, @periodo, @cedulaAdmin);
 End;
 Go
+
 
 --Crear carpetas
 CREATE OR ALTER PROCEDURE crearCarpeta @nombre varchar(50), @codigoCurso varchar(10), @numeroGrupo int
@@ -262,6 +269,7 @@ BEGIN
 		RAISERROR ('El curso al que intenta agregarle un grupo no existe en este semestre',16,1);
 END;
 GO
+
 
 --Establecer los profesores del grupo.
 CREATE OR ALTER PROCEDURE asignarProfesorGrupo @codigoCurso varchar(10), @numeroGrupo int, @cedulaProfesor varchar(20)
@@ -665,6 +673,7 @@ END;
 GO
 
 
+
 --Indica que las notas de una evaluacion ya fueron publicadas y crea una noticia por medio de un trigger
 CREATE OR ALTER PROCEDURE publicarNotas @idEvaluacion int AS
 BEGIN
@@ -927,10 +936,15 @@ END;
 GO
 
 /*
-execute verNotasEstudianteGrupo @carnet = '2019A0021', @codigoCurso = 'CE3101' , @numeroGrupo = 1
-
-execute revisarEvaluacion @carnet = '2019A0021',@idEvaluacion = 50 ,@nota = 85,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
+execute revisarEvaluacion @carnet = '2019A0021',@idEvaluacion = 42 ,@nota = 71,@comentario = 'comentario prueba 1',@nombreArch ='nombre prueba',
 @tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
+execute revisarEvaluacion @carnet = '2019A0021',@idEvaluacion = 43 ,@nota = 62,@comentario = 'comentario prueba 2',@nombreArch ='nombre prueba',
+@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
+execute revisarEvaluacion @carnet = '2019A0021',@idEvaluacion = 46 ,@nota = 88.2,@comentario = 'comentario prueba 3',@nombreArch ='nombre prueba',
+@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
+execute revisarEvaluacion @carnet = '2019A0021',@idEvaluacion = 50 ,@nota = 91,@comentario = 'comentario prueba 4',@nombreArch ='nombre prueba',
+@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
+
 execute revisarEvaluacion @carnet = '2019A0036',@idEvaluacion = 50 ,@nota = 95,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
 @tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
 execute revisarEvaluacion @carnet = '2019A0221',@idEvaluacion = 50 ,@nota = 45,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
@@ -982,33 +996,3 @@ BEGIN
 	Select * from Noticias where idGrupo = @idGrupo order by fecha desc;
 END;
 GO
-
-
-/*
-CREATE OR ALTER PROCEDURE PRUEBA
-AS
-BEGIN
-	Create table #tempTable (
-	Carnet varchar (20),
-	Nombre varchar (50),
-	Apellido1 varchar (50),
-	Apellido2 varchar (50),
-	IdCurso varchar (10),
-	NombreCurso varchar (100),
-	Ano int,
-	Semestre int,
-	Grupo int,
-	IdProfesor varchar (50),
-	NombreProfesor varchar (50),
-	ApellidoProfesor varchar (50),
-	ApellidoProfesor2 varchar (50)
-	);
-	select * from #tempTable
-	INSERT INTO #tempTable SELECT A.[Column1], A.[Column2], A.[Column3], A.[Column4]
-	FROM OPENROWSET 
-	('Microsoft.Jet.OLEDB.4.0', 'Excel 8.0;Database=D:\Excel.xls;HDR=YES', 'select * from [Sheet1$]') AS A;
-	drop table #tempTable
-	select * from Data$
-END;
-GO
-*/
