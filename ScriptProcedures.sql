@@ -387,8 +387,8 @@ GO
 CREATE OR ALTER PROCEDURE obtenerProfesorExcel
 AS
 BEGIN
-select IdProfesor, NombreProfesor, ApellidoProfesor,ApellidoProfesor2 from  Data$ where IdProfesor != 'NULL' 
-group by IdProfesor, NombreProfesor, ApellidoProfesor, ApellidoProfesor2
+select IdProfesor, NombreProfesor, ApellidoProfesor,ApellidoProfesor1 from  Data$ where IdProfesor != 'NULL' 
+group by IdProfesor, NombreProfesor, ApellidoProfesor, ApellidoProfesor1
 END;
 GO
 
