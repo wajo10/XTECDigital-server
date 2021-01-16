@@ -74,7 +74,7 @@ GO
 
 
 --Permite ver los estudiantes de un grupo de un semestre y curso especifico
-CREATE OR ALTER PROCEDURE verEstudiantesSemestre @ano int, @periodo varchar(10), @grupo int, @codigoCurso varchar (10)
+CREATE OR ALTER PROCEDURE verEstudiantesGrupo @ano int, @periodo varchar(10), @grupo int, @codigoCurso varchar (10)
 AS
 BEGIN
 	DECLARE @idSemestre int = (select idSemestre from Semestre where ano = @ano and periodo = @periodo);
@@ -270,15 +270,25 @@ BEGIN
 END;
 GO
 
-
+ 
 --Establecer los profesores del grupo.
-CREATE OR ALTER PROCEDURE asignarProfesorGrupo @codigoCurso varchar(10), @numeroGrupo int, @cedulaProfesor varchar(20)
+CREATE OR ALTER PROCEDURE asignarProfesorGrupo @codigoCurso varchar(10), @numeroGrupo int, @ano int, @periodo varchar (10), @cedulaProfesor varchar(20)
 AS
 BEGIN
+	DECLARE @idSemestre int = (select idSemestre from Semestre where ano = @ano and periodo = @periodo);
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
-	insert into ProfesoresGrupo (idGrupo, cedulaProfesor) values (@idGrupo, @cedulaProfesor)
+	If exists (
+				select * from CursosPorSemestre as cp inner join  grupo as g
+				on g.codigoCurso = cp.codigoCurso
+				where idSemestre = @idSemestre and g.codigoCurso = @codigoCurso and g.numeroGrupo = @numeroGrupo)
+	Begin
+		insert into ProfesoresGrupo (idGrupo, cedulaProfesor) values (@idGrupo, @cedulaProfesor)
+	End;
+	Else
+		RAISERROR ('El grupo al que intenta agregar al profesor no existe en este semestre',16,1);
 END;
 GO
+
 
 --Eliminar profesor del grupo
 CREATE OR ALTER PROCEDURE eliminarProfesorGrupo @codigoCurso varchar(10), @numeroGrupo int, @cedulaProfesor varchar(20)
@@ -290,13 +300,23 @@ END;
 GO
 
 --Establecer estudiantes del grupo
-CREATE OR ALTER PROCEDURE agregarEstudiantesGrupo @carnet varchar(15), @codigoCurso varchar(10), @numeroGrupo int
+CREATE OR ALTER PROCEDURE agregarEstudiantesGrupo @carnet varchar(15), @codigoCurso varchar(10), @numeroGrupo int, @ano int, @periodo varchar(10)
 AS
 BEGIN
+	DECLARE @idSemestre int = (select idSemestre from Semestre where ano = @ano and periodo = @periodo);
 	DECLARE @idGrupo int = (select idGrupo from Grupo where codigoCurso = @codigoCurso and numeroGrupo = @numeroGrupo);
-	insert into EstudiantesGrupo values (@carnet, @idGrupo);
+	If exists (select * from CursosPorSemestre as cp inner join  grupo as g
+				on g.codigoCurso = cp.codigoCurso
+				where idSemestre = @idSemestre and g.codigoCurso = @codigoCurso and g.numeroGrupo = @numeroGrupo
+				)
+	Begin
+		insert into EstudiantesGrupo values (@carnet, @idGrupo);
+	End;
+	Else
+		RAISERROR ('El grupo al que intenta agregar al profesor no existe en este semestre',16,1);
 END;
 GO
+
 
 --PROCEDURE PARA INICIALIZAR SEMESTRE EN BASE A LA TABLA DE EXCEL
 CREATE OR ALTER PROCEDURE crearSemestreExcel
@@ -465,6 +485,7 @@ BEGIN
 	Return
 END;
 Go
+
 
 --Valida que no se puedan eliminar los rubros creados al inicializar el semestre
 Create or Alter Trigger tr_EliminarRubro on Rubros
@@ -709,6 +730,7 @@ AS
 select carnet, codigoCurso,sum(notaFinalRubro) notaFinal from v_notasFinalesRubros group by carnet, codigoCurso;
 GO
 
+
 --View que permite ver los estudiantes matriculados en todos los cursos
 CREATE OR ALTER VIEW v_estudiantesCursos
 AS
@@ -717,6 +739,7 @@ AS
 	inner join Curso as c on c.codigo = g.codigoCurso
 	group by codigo, carnetEstudiante
 GO
+
 
 --View notas grupales
 CREATE OR ALTER VIEW v_notasGrupalesResumidas
@@ -729,11 +752,15 @@ AS
 GO
 
 --Permite ver el reporte de los estudiantes matriculados en un curso en especifico
-CREATE OR ALTER PROCEDURE verEstudiantesCurso @codigoCurso varchar (20) AS
+CREATE OR ALTER PROCEDURE verEstudiantesCurso @codigoCurso varchar (20)
+AS
 BEGIN
-select * from v_estudiantesCursos where codigo = @codigoCurso
+select * from v_estudiantesCursos where codigo = @codigoCurso 
 END;
 GO
+--execute verEstudiantesCurso @codigoCurso = 'PR1234'
+
+
 
 --Permite ver el reporte de notas de los estudiantes segun el grupo al que pertenezca
 CREATE OR ALTER PROCEDURE verNotasGrupo @codigoCurso varchar (15), @numeroGrupo int
@@ -934,59 +961,6 @@ BEGIN
 	group by n.rubro, nombreEvaluacion, notaObtenida, porcentajeObtenido, porcentajeEvaluacion,notaFinalRubro
 END;
 GO
-
-/*
-execute revisarEvaluacion @carnet = '2019A0021',@idEvaluacion = 42 ,@nota = 71,@comentario = 'comentario prueba 1',@nombreArch ='nombre prueba',
-@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
-execute revisarEvaluacion @carnet = '2019A0021',@idEvaluacion = 43 ,@nota = 62,@comentario = 'comentario prueba 2',@nombreArch ='nombre prueba',
-@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
-execute revisarEvaluacion @carnet = '2019A0021',@idEvaluacion = 46 ,@nota = 88.2,@comentario = 'comentario prueba 3',@nombreArch ='nombre prueba',
-@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
-execute revisarEvaluacion @carnet = '2019A0021',@idEvaluacion = 50 ,@nota = 91,@comentario = 'comentario prueba 4',@nombreArch ='nombre prueba',
-@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
-
-execute revisarEvaluacion @carnet = '2019A0036',@idEvaluacion = 50 ,@nota = 95,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
-@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
-execute revisarEvaluacion @carnet = '2019A0221',@idEvaluacion = 50 ,@nota = 45,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
-@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
-execute revisarEvaluacion @carnet = '2019B0022',@idEvaluacion = 50 ,@nota = 100,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
-@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
-execute revisarEvaluacion @carnet = '2019B0037',@idEvaluacion = 50 ,@nota = 50,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
-@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
-execute revisarEvaluacion @carnet = '2019C0023',@idEvaluacion = 50 ,@nota = 78,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
-@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
-execute revisarEvaluacion @carnet = '2019C0038',@idEvaluacion = 50 ,@nota = 54.65,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
-@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
-execute revisarEvaluacion @carnet = '2019D0019',@idEvaluacion = 50 ,@nota = 68,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
-@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
-execute revisarEvaluacion @carnet = '2019D0034',@idEvaluacion = 50 ,@nota = 33,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
-@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
-execute revisarEvaluacion @carnet = '2019D0049',@idEvaluacion = 50 ,@nota = 0,@comentario = 'comentario examen 2',@nombreArch ='nombre prueba',
-@tipoArch = 'excel',@archivoRetroalimentacion = 'archivoPrueba'
-
-execute crearEvaluacion @grupal = 1, @nombre = 'Examen 2',@porcentaje = 10 ,@fechaInicio = '2020-12-18 00:01:21.283',@fechaFin = '2020-12-19 00:01:21.283'
-,@archivo = 'archivoPrueba',@nombArch = 'archivo Prueba', @tipArch = 'Tipo archivo',@rubro = 'Examenes',@codigoCurso = 'CE3101',@numeroGrupo = 1
-
-
-select * from EvaluacionesEstudiantes
-select * from Evaluaciones where idRubro = 42
-select * from grupo;
-select * from curso;
-select * from Rubros where idgrupo = 158;
-select * from v_notasEstudiantes 
-158
-
-execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0021',@idEvaluacion = 50, @numeroGrupoEvaluacion = 1
-execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0036',@idEvaluacion = 50, @numeroGrupoEvaluacion = 1
-execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019A0221',@idEvaluacion = 50, @numeroGrupoEvaluacion = 1
-execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019B0022',@idEvaluacion = 50, @numeroGrupoEvaluacion = 1
-execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019B0037',@idEvaluacion = 50, @numeroGrupoEvaluacion = 1
-execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019C0023',@idEvaluacion = 50, @numeroGrupoEvaluacion = 2
-execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019C0038',@idEvaluacion = 50, @numeroGrupoEvaluacion = 2
-execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019D0019',@idEvaluacion = 50, @numeroGrupoEvaluacion = 2
-execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019D0034',@idEvaluacion = 50, @numeroGrupoEvaluacion = 2
-execute agregarEstudianteEvaluacionGrupal @carnetEstudiante = '2019D0049',@idEvaluacion = 50, @numeroGrupoEvaluacion = 2
-*/
 
 --Ver las noticias de un grupo ordenadas por fecha
 CREATE OR ALTER PROCEDURE verNoticiasGrupo @codigoCurso varchar(10), @numeroGrupo int
