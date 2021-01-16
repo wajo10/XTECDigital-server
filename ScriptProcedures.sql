@@ -20,10 +20,6 @@ INSERT INTO Administrador values (@cedula);
 End;
 Go
 
---agrega un administrador por defecto
-execute agregarAdmin @cedula = '0';
-
-
 --*******************************ADMINISTRADOR******************************************
 --Crear curso
 CREATE OR ALTER PROCEDURE crearCurso @Codigo varchar(10), @nombre varchar(50), @carrera varchar(50), @creditos int, @habilitado bit, @cedulaAdmin varchar (10)
@@ -972,3 +968,6 @@ BEGIN
 	Select * from Noticias where idGrupo = @idGrupo order by fecha desc;
 END;
 GO
+
+--agrega un administrador por defecto
+execute agregarAdmin @cedula = '0';
