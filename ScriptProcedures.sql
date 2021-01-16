@@ -6,7 +6,6 @@ INSERT INTO Profesor values (@cedula);
 End;
 Go
 
-
 CREATE OR ALTER PROCEDURE agregarEstudiante @carnet varchar(20)
 AS
 Begin
@@ -20,6 +19,9 @@ Begin
 INSERT INTO Administrador values (@cedula);
 End;
 Go
+
+--agrega un administrador por defecto
+execute agregarAdmin @cedula = '0';
 
 
 --*******************************ADMINISTRADOR******************************************

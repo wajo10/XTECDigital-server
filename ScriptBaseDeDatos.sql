@@ -45,7 +45,6 @@ create table Profesor(
 	primary key (cedula)
 );
 
-
 create table Grupo(
 	idGrupo int identity(1,1),
 	codigoCurso varchar (10) not null,
