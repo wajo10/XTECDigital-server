@@ -97,3 +97,16 @@ select * from Evaluaciones
 DBCC CHECKIDENT ('Evaluaciones', RESEED, 0) 
 select * from Carpetas
 */
+
+
+/*
+execute crearSemestre @ano = 2022, @periodo = 'verano',@cedulaAdmin = '0'
+execute crearCurso @Codigo = 'PR1234', @nombre = 'Curso de prueba', @carrera = 'ingenieria de prueba', @creditos = 3, @habilitado = 1, @cedulaAdmin = '0';
+execute crearCurso @Codigo = 'PR222', @nombre = 'Curso de prueba 2', @carrera = 'ingenieria de prueba', @creditos = 3, @habilitado = 1, @cedulaAdmin = '0';
+execute agregarCursoSemestre @codigoCurso = 'PR1234' ,@anoSemestre = 2022,@periodoSemestre = 'verano';
+execute agregarCursoSemestre @codigoCurso = 'PR222' ,@anoSemestre = 2022,@periodoSemestre = 'verano';
+Execute crearGrupo @codigoCurso = 'PR1234', @numeroGrupo = 1, @ano = 2022, @periodo = verano;
+Execute crearGrupo @codigoCurso = 'PR222', @numeroGrupo = 1,@ano = 2022, @periodo = verano;
+execute verCursosSemestre @ano = 2022, @periodo = 'verano';
+execute verCursosSemestre @ano = 2021, @periodo = '1'
+*/
