@@ -392,6 +392,14 @@ group by IdProfesor, NombreProfesor, ApellidoProfesor, ApellidoProfesor2
 END;
 GO
 
+--Elimina la tabla temporal que se utiliza para importar el excel
+CREATE OR ALTER PROCEDURE borrarTablaTemporal
+AS
+BEGIN
+	Drop table Data$;
+END;
+GO
+
 --........................................................TRIGGERS........................................................
 
 --Valida que al crear un semestre no exista ya uno con el mismo ano y periodo
@@ -970,4 +978,4 @@ END;
 GO
 
 --agrega un administrador por defecto
-execute agregarAdmin @cedula = '0';
+execute agregarAdmin @cedula = '0'
